@@ -1,0 +1,9 @@
+[submodule "xterm"]
+	path = xterm
+	url = https://github.com/TerminalStudio/xterm.dart.git
+[submodule "pty"]
+	path = pty
+	url = https://github.com/TerminalStudio/pty.git
+[submodule "tabs"]
+	path = tabs
+	url = https://github.com/TerminalStudio/tabs.git
