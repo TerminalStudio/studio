@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"path": "studio"
+		},
+		{
+			"path": "tabs"
+		},
+		{
+			"path": "pty"
+		},
+		{
+			"path": "xterm"
+		}
+	],
+	"settings": {}
+}
