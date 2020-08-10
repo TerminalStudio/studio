@@ -2,6 +2,9 @@
 
 #include <flutter_linux/flutter_linux.h>
 
+#include <sys/types.h>
+#include <signal.h>
+
 #include "flutter/generated_plugin_registrant.h"
 
 struct _MyApplication
@@ -10,6 +13,12 @@ struct _MyApplication
 };
 
 G_DEFINE_TYPE(MyApplication, my_application, GTK_TYPE_APPLICATION)
+
+static void on_close()
+{
+  // kill(0, SIGTERM);
+  exit(0);
+}
 
 // Implements GApplication::activate.
 static void my_application_activate(GApplication *application)
@@ -20,6 +29,9 @@ static void my_application_activate(GApplication *application)
 
   GtkWindow *window =
       GTK_WINDOW(gtk_application_window_new(GTK_APPLICATION(application)));
+
+  g_signal_connect(window, "delete_event", G_CALLBACK(on_close), NULL);
+
   // GtkHeaderBar *header_bar = GTK_HEADER_BAR(gtk_header_bar_new());
   // gtk_widget_show(GTK_WIDGET(header_bar));
   // gtk_header_bar_set_title(header_bar, "studio");

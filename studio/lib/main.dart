@@ -16,6 +16,8 @@ void main() {
   // ProcessSignal.sigterm.watch().listen((event) {
   //   print('sigterm');
   // });
+
+  // ProcessSignal.
 }
 
 class MyApp extends StatelessWidget {
@@ -98,11 +100,18 @@ class _MyHomePageState extends State<MyHomePage> {
 
     readToTerminal(pty, terminal);
 
+    proc.wait().then((_) {
+      tab.requestClose();
+    });
+
     return Tab(
       controller: tab,
       title: 'Terminal',
       content: GestureDetector(
-        onSecondaryTap: () {},
+        onSecondaryTap: () async {
+          final data = await Clipboard.getData('text/plain');
+          terminal.paste(data.text);
+        },
         onSecondaryLongPress: () {
           final data = ClipboardData(text: terminal.getSelectedText());
           Clipboard.setData(data);
