@@ -10,3 +10,7 @@ Terminal emulator written in **Flutter**.
 ```
 git submodule update --init
 ```
+
+```
+git pull --recurse-submodules
+```

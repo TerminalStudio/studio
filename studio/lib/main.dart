@@ -63,7 +63,6 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-<<<<<<< HEAD
         child: Container(
           color: Color(0xFF3A3D3F),
           child: TabsView(
@@ -77,18 +76,6 @@ class _MyHomePageState extends State<MyHomePage> {
               )
             ],
           ),
-=======
-        child: TabsView(
-          controller: tabs,
-          actions: [
-            TabsGroupAction(
-              icon: CupertinoIcons.add,
-              onTap: (group) {
-                addTab();
-              },
-            )
-          ],
->>>>>>> 2a61f8133d6a96843a8e52891546cbb68a448e3c
         ),
       ),
     );
