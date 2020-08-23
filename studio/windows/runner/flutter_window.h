@@ -20,7 +20,7 @@ class FlutterWindow : public Win32Window {
 
  protected:
   // Win32Window:
-  void OnCreate() override;
+  bool OnCreate() override;
   void OnDestroy() override;
 
  private:
@@ -32,6 +32,10 @@ class FlutterWindow : public Win32Window {
 
   // The Flutter instance hosted by this window.
   std::unique_ptr<flutter::FlutterViewController> flutter_controller_;
+
+  int aElements[2] = {COLOR_WINDOW, COLOR_ACTIVECAPTION};
+  DWORD aNewColors[2];
+  DWORD aOldColors[2];
 };
 
 #endif  // FLUTTER_WINDOW_H_
