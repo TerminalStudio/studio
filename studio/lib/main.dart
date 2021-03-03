@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:context_menu_macos/context_menu_macos.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
@@ -8,16 +10,11 @@ import 'package:tabs/tabs.dart';
 
 import 'package:flutter/material.dart' hide Tab, TabController;
 import 'package:xterm/flutter.dart';
+import 'package:xterm/theme/terminal_style.dart';
 import 'package:xterm/xterm.dart';
 
 void main() {
   runApp(MyApp());
-
-  // ProcessSignal.sigterm.watch().listen((event) {
-  //   print('sigterm');
-  // });
-
-  // ProcessSignal.
 }
 
 class MyApp extends StatelessWidget {
@@ -30,15 +27,13 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MyHomePage(),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  final String title;
+  MyHomePage({Key key}) : super(key: key);
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -62,9 +57,11 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: SafeArea(
         child: Container(
-          color: Color(0xFF3A3D3F),
+          // color: Color(0xFF3A3D3F),
+          color: Colors.transparent,
           child: TabsView(
             controller: tabs,
             actions: [
@@ -85,82 +82,24 @@ class _MyHomePageState extends State<MyHomePage> {
     this.group.addTab(buildTab(), activate: true);
   }
 
-  Tab buildPersuduTab() {
-    final tab = TabController();
-
-    // final pty = Pty();
-    // final shell = Platform.environment['SHELL'] ?? 'sh';
-    // final proc = pty.exec(shell, arguments: []);
-
-    final terminal = Terminal(
-      onTitleChange: tab.setTitle,
-      // onInput: pty.write,
-    );
-
-    terminal.write('No Signal.');
-
-    // terminal.debug.enable();
-
-    final focusNode = FocusNode();
-
-    SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
-      focusNode.requestFocus();
-    });
-
-    // readToTerminal(pty, terminal);
-
-    // proc.wait().then((_) {
-    //   tab.requestClose();
-    // });
-
-    return Tab(
-      controller: tab,
-      title: 'Terminal',
-      content: GestureDetector(
-        onSecondaryTap: () async {
-          // final data = await Clipboard.getData('text/plain');
-          // terminal.paste(data.text);
-        },
-        onSecondaryLongPress: () {
-          // final data = ClipboardData(text: terminal.getSelectedText());
-          // Clipboard.setData(data);
-          // terminal.selection.clear();
-          // terminal.refresh();
-        },
-        child: TerminalView(
-          terminal: terminal,
-          // onResize: pty.resize,
-          focusNode: focusNode,
-        ),
-      ),
-      onActivate: () {
-        focusNode.requestFocus();
-      },
-      onDrop: () {
-        SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
-          focusNode.requestFocus();
-        });
-      },
-      onClose: () {
-        // proc.kill();
-      },
-    );
-  }
-
   Tab buildTab() {
     final tab = TabController();
 
-    final pty = Pty();
+    final shell = getShell();
+    final pty = PseudoTerminal.start(shell, []);
 
     final terminal = Terminal(
       onTitleChange: tab.setTitle,
-      onInput: pty.write,
       platform: getPlatform(),
+      onInput: pty.write,
     );
 
     terminal.debug.enable();
-    final shell = getShell();
-    final proc = pty.exec(shell, arguments: []);
+
+    pty.out.listen((data) {
+      print(data);
+      terminal.write(data);
+    });
 
     final focusNode = FocusNode();
 
@@ -168,9 +107,7 @@ class _MyHomePageState extends State<MyHomePage> {
       focusNode.requestFocus();
     });
 
-    readToTerminal(pty, terminal);
-
-    proc.wait().then((_) {
+    pty.exitCode.then((_) {
       tab.requestClose();
     });
 
@@ -178,23 +115,65 @@ class _MyHomePageState extends State<MyHomePage> {
       controller: tab,
       title: 'Terminal',
       content: GestureDetector(
-        onSecondaryTap: () async {
-          if (terminal.selection.isEmpty) {
-            final data = await Clipboard.getData('text/plain');
-            terminal.paste(data.text);
-            terminal.debug.onMsg('paste ┤${data.text}├');
-          } else {
-            final text = terminal.getSelectedText();
-            Clipboard.setData(ClipboardData(text: text));
-            terminal.selection.clear();
-            terminal.debug.onMsg('copy ┤$text├');
-            terminal.refresh();
-          }
+        onSecondaryTapDown: (details) async {
+          final hasSelection = !terminal.selection.isEmpty;
+          final clipboardData = await Clipboard.getData('text/plain');
+
+          showMacosContextMenu(
+            context: context,
+            globalPosition: details.globalPosition,
+            children: [
+              MacosContextMenuItem(
+                content: Text('Copy'),
+                trailing: Text('⌘ C'),
+                enabled: hasSelection,
+                onTap: () {
+                  final text = terminal.getSelectedText();
+                  Clipboard.setData(ClipboardData(text: text));
+                  terminal.selection.clear();
+                  terminal.debug.onMsg('copy ┤$text├');
+                  terminal.refresh();
+                  Navigator.of(context).pop();
+                },
+              ),
+              MacosContextMenuItem(
+                content: Text('Paste'),
+                trailing: Text('⌘ V'),
+                enabled: clipboardData.text.isNotEmpty,
+                onTap: () {
+                  terminal.paste(clipboardData.text);
+                  terminal.debug.onMsg('paste ┤${clipboardData.text}├');
+                  Navigator.of(context).pop();
+                },
+              ),
+              MacosContextMenuItem(
+                content: Text('Select All'),
+                trailing: Text('⌘ A'),
+                onTap: () => Navigator.of(context).pop(),
+              ),
+              MacosContextMenuDivider(),
+              MacosContextMenuItem(
+                content: Text('Clear'),
+                trailing: Text('⌘ K'),
+                onTap: () => Navigator.of(context).pop(),
+              ),
+              MacosContextMenuDivider(),
+              MacosContextMenuItem(
+                content: Text('Kill'),
+                onTap: () => Navigator.of(context).pop(),
+              ),
+            ],
+          );
         },
         child: TerminalView(
           terminal: terminal,
+          // onResize: pty.resize,
           onResize: pty.resize,
           focusNode: focusNode,
+          style: TerminalStyle(
+            fontSize: 12,
+          ),
+          opacity: 0.85,
         ),
       ),
       onActivate: () {
@@ -206,37 +185,26 @@ class _MyHomePageState extends State<MyHomePage> {
         });
       },
       onClose: () {
-        proc.kill();
+        pty.kill();
       },
     );
   }
 
-  void readToTerminal(Pty pty, Terminal terminal) async {
-    while (true) {
-      final data = await pty.read();
-
-      if (data == null) {
-        break;
-      }
-
-      terminal.write(data);
-    }
-  }
-
   String getShell() {
     if (Platform.isWindows) {
-      // return r'C:\windows\system32\cmd.exe';
-      return r'C:\windows\system32\WindowsPowerShell\v1.0\powershell.exe';
+      return r'C:\windows\system32\cmd.exe';
+      // return r'C:\windows\system32\WindowsPowerShell\v1.0\powershell.exe';
     }
 
     return Platform.environment['SHELL'] ?? 'sh';
+    // return '/bin/zsh';
   }
 
   PlatformBehavior getPlatform() {
     if (Platform.isWindows) {
-      return PlatformBehavior.windows;
+      return PlatformBehaviors.windows;
     }
 
-    return PlatformBehavior.unix;
+    return PlatformBehaviors.unix;
   }
 }

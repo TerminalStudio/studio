@@ -33,6 +33,12 @@ dependencies:
   tabs:
     path: ../tabs
 
+  context_menu_macos:
+    path: ../context_menu_macos
+
+  web_socket_channel: ^1.2.0
+  http: ^0.12.2
+
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.3
@@ -63,6 +69,11 @@ flutter:
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
   # example:
+
+  fonts:
+    - family: Cascadia Mono
+      fonts:
+        - asset: fonts/CascadiaMonoPL.ttf
   # fonts:
   #   - family: Schyler
   #     fonts:
