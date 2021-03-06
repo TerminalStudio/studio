@@ -1,13 +1,13 @@
-#ifndef FLUTTER_WINDOW_H_
-#define FLUTTER_WINDOW_H_
+#ifndef RUNNER_FLUTTER_WINDOW_H_
+#define RUNNER_FLUTTER_WINDOW_H_
 
 #include <flutter/dart_project.h>
 #include <flutter/flutter_view_controller.h>
 
+#include <memory>
+
 #include "run_loop.h"
 #include "win32_window.h"
-
-#include <memory>
 
 // A window that does nothing but host a Flutter view.
 class FlutterWindow : public Win32Window {
@@ -22,6 +22,8 @@ class FlutterWindow : public Win32Window {
   // Win32Window:
   bool OnCreate() override;
   void OnDestroy() override;
+  LRESULT MessageHandler(HWND window, UINT const message, WPARAM const wparam,
+                         LPARAM const lparam) noexcept override;
 
  private:
   // The run loop driving events for this window.
@@ -32,10 +34,6 @@ class FlutterWindow : public Win32Window {
 
   // The Flutter instance hosted by this window.
   std::unique_ptr<flutter::FlutterViewController> flutter_controller_;
-
-  int aElements[2] = {COLOR_WINDOW, COLOR_ACTIVECAPTION};
-  DWORD aNewColors[2];
-  DWORD aOldColors[2];
 };
 
-#endif  // FLUTTER_WINDOW_H_
+#endif  // RUNNER_FLUTTER_WINDOW_H_
