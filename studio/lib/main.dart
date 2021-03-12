@@ -1,4 +1,4 @@
-import 'dart:convert';
+import 'dart:ffi';
 import 'dart:io';
 
 import 'package:context_menu_macos/context_menu_macos.dart';
@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Terminal Lite',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.blue,
@@ -33,7 +33,7 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key}) : super(key: key);
+  MyHomePage({Key? key}) : super(key: key);
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -42,6 +42,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   final tabs = TabsController();
   final group = TabGroupController();
+  var tabCount = 0;
 
   @override
   void initState() {
@@ -83,27 +84,37 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Tab buildTab() {
+    tabCount++;
+
     final tab = TabController();
 
+    if (!Platform.isWindows) {
+      Directory.current = Platform.environment['HOME'] ?? '/';
+    }
+
+    // terminal.debug.enable();
+
     final shell = getShell();
-    final pty = PseudoTerminal.start(shell, []);
+
+    final pty = PseudoTerminal.start(
+      shell,
+      // ['-l'],
+      [],
+    );
+
+    // pty.write('cd\n');
 
     final terminal = Terminal(
       onTitleChange: tab.setTitle,
-      platform: getPlatform(),
       onInput: pty.write,
+      platform: getPlatform(),
     );
 
-    terminal.debug.enable();
-
-    pty.out.listen((data) {
-      print(data);
-      terminal.write(data);
-    });
+    pty.out.listen(terminal.write);
 
     final focusNode = FocusNode();
 
-    SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+    SchedulerBinding.instance!.addPostFrameCallback((timeStamp) {
       focusNode.requestFocus();
     });
 
@@ -116,8 +127,9 @@ class _MyHomePageState extends State<MyHomePage> {
       title: 'Terminal',
       content: GestureDetector(
         onSecondaryTapDown: (details) async {
-          final hasSelection = !terminal.selection.isEmpty;
           final clipboardData = await Clipboard.getData('text/plain');
+          final hasSelection = !terminal.selection.isEmpty;
+          final clipboardHasData = clipboardData?.text?.isNotEmpty == true;
 
           showMacosContextMenu(
             context: context,
@@ -139,9 +151,9 @@ class _MyHomePageState extends State<MyHomePage> {
               MacosContextMenuItem(
                 content: Text('Paste'),
                 trailing: Text('⌘ V'),
-                enabled: clipboardData.text.isNotEmpty,
+                enabled: clipboardHasData,
                 onTap: () {
-                  terminal.paste(clipboardData.text);
+                  terminal.paste(clipboardData!.text!);
                   terminal.debug.onMsg('paste ┤${clipboardData.text}├');
                   Navigator.of(context).pop();
                 },
@@ -149,55 +161,70 @@ class _MyHomePageState extends State<MyHomePage> {
               MacosContextMenuItem(
                 content: Text('Select All'),
                 trailing: Text('⌘ A'),
-                onTap: () => Navigator.of(context).pop(),
+                onTap: () {
+                  print('Select All is currently not implemented.');
+                  Navigator.of(context).pop();
+                },
               ),
               MacosContextMenuDivider(),
               MacosContextMenuItem(
                 content: Text('Clear'),
                 trailing: Text('⌘ K'),
-                onTap: () => Navigator.of(context).pop(),
+                onTap: () {
+                  print('Clear is currently not implemented.');
+                  Navigator.of(context).pop();
+                },
               ),
               MacosContextMenuDivider(),
               MacosContextMenuItem(
                 content: Text('Kill'),
-                onTap: () => Navigator.of(context).pop(),
+                onTap: () {
+                  pty.kill();
+                  Navigator.of(context).pop();
+                },
               ),
             ],
           );
         },
-        child: TerminalView(
-          terminal: terminal,
-          // onResize: pty.resize,
-          onResize: pty.resize,
-          focusNode: focusNode,
-          style: TerminalStyle(
-            fontSize: 12,
+        child: CupertinoScrollbar(
+          child: TerminalView(
+            terminal: terminal,
+            onResize: pty.resize,
+            focusNode: focusNode,
+            opacity: 0.85,
+            style: TerminalStyle(
+              fontSize: 15,
+            ),
           ),
-          opacity: 0.85,
         ),
       ),
       onActivate: () {
         focusNode.requestFocus();
       },
       onDrop: () {
-        SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+        SchedulerBinding.instance!.addPostFrameCallback((timeStamp) {
           focusNode.requestFocus();
         });
       },
       onClose: () {
         pty.kill();
+
+        tabCount--;
+
+        if (tabCount <= 0) {
+          exit(0);
+        }
       },
     );
   }
 
   String getShell() {
     if (Platform.isWindows) {
-      return r'C:\windows\system32\cmd.exe';
-      // return r'C:\windows\system32\WindowsPowerShell\v1.0\powershell.exe';
+      // return r'C:\windows\system32\cmd.exe';
+      return r'C:\windows\system32\WindowsPowerShell\v1.0\powershell.exe';
     }
 
     return Platform.environment['SHELL'] ?? 'sh';
-    // return '/bin/zsh';
   }
 
   PlatformBehavior getPlatform() {
