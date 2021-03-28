@@ -100,15 +100,19 @@ class _MyHomePageState extends State<MyHomePage> {
       shell,
       // ['-l'],
       [],
+      blocking: true,
     );
 
     // pty.write('cd\n');
 
+    // final terminal = TerminalIsolate(
     final terminal = Terminal(
       onTitleChange: tab.setTitle,
       onInput: pty.write,
       platform: getPlatform(),
     );
+
+    // terminal.start();
 
     pty.out.listen(terminal.write);
 
@@ -126,6 +130,18 @@ class _MyHomePageState extends State<MyHomePage> {
       controller: tab,
       title: 'Terminal',
       content: GestureDetector(
+        onLongPress: () {
+          print('onLongPress');
+        },
+        // onDoubleTapDown: (details) {
+        onDoubleTap: () {
+          print('onDoubleTap \$details');
+        },
+        //   print('onDoubleTapDown \$details');
+        // },
+        // onTertiaryTapDown: (details) {
+        //   print('onTertiaryTapDown $details');
+        // },
         onSecondaryTapDown: (details) async {
           final clipboardData = await Clipboard.getData('text/plain');
           final hasSelection = !terminal.selection.isEmpty;
