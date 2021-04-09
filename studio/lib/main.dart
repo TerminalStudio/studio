@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:pty/pty.dart';
+import 'package:studio/utils/build_mode.dart';
 import 'package:tabs/tabs.dart';
 
 import 'package:flutter/material.dart' hide Tab, TabController;
@@ -100,7 +101,7 @@ class _MyHomePageState extends State<MyHomePage> {
       shell,
       // ['-l'],
       [],
-      blocking: true,
+      blocking: !BuildMode.isDebug,
     );
 
     // pty.write('cd\n');
