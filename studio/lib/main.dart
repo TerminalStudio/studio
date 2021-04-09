@@ -1,4 +1,3 @@
-import 'dart:ffi';
 import 'dart:io';
 
 import 'package:context_menu_macos/context_menu_macos.dart';
@@ -24,6 +23,7 @@ class MyApp extends StatelessWidget {
       title: 'Terminal Lite',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
+        brightness: Brightness.dark,
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
@@ -110,6 +110,7 @@ class _MyHomePageState extends State<MyHomePage> {
       onTitleChange: tab.setTitle,
       onInput: pty.write,
       platform: getPlatform(),
+      maxLines: 10000,
     );
 
     // terminal.start();
@@ -117,6 +118,7 @@ class _MyHomePageState extends State<MyHomePage> {
     pty.out.listen(terminal.write);
 
     final focusNode = FocusNode();
+    final scrollController = ScrollController();
 
     SchedulerBinding.instance!.addPostFrameCallback((timeStamp) {
       focusNode.requestFocus();
@@ -203,7 +205,9 @@ class _MyHomePageState extends State<MyHomePage> {
           );
         },
         child: CupertinoScrollbar(
+          controller: scrollController,
           child: TerminalView(
+            scrollController: scrollController,
             terminal: terminal,
             onResize: pty.resize,
             focusNode: focusNode,
