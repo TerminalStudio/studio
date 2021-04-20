@@ -6,6 +6,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:pty/pty.dart';
 import 'package:studio/utils/build_mode.dart';
+import 'package:studio/utils/pty_terminal_backend.dart';
 import 'package:tabs/tabs.dart';
 
 import 'package:flutter/material.dart' hide Tab, TabController;
@@ -101,22 +102,23 @@ class _MyHomePageState extends State<MyHomePage> {
       shell,
       // ['-l'],
       [],
-      blocking: !BuildMode.isDebug,
+      blocking: false,
     );
+
+    final backend = PtyTerminalBackend(pty);
 
     // pty.write('cd\n');
 
     // final terminal = TerminalIsolate(
-    final terminal = Terminal(
+    final terminal = TerminalIsolate(
       onTitleChange: tab.setTitle,
-      onInput: pty.write,
-      platform: getPlatform(),
+      backend: backend,
+      platform: getPlatform(true),
       maxLines: 10000,
     );
 
-    // terminal.start();
-
-    pty.out.listen(terminal.write);
+    //terminal.debug.enable(true);
+    terminal.start();
 
     final focusNode = FocusNode();
     final scrollController = ScrollController();
@@ -125,9 +127,7 @@ class _MyHomePageState extends State<MyHomePage> {
       focusNode.requestFocus();
     });
 
-    pty.exitCode.then((_) {
-      tab.requestClose();
-    });
+    terminal.backendExited.then((_) => tab.requestClose());
 
     return Tab(
       controller: tab,
@@ -147,7 +147,7 @@ class _MyHomePageState extends State<MyHomePage> {
         // },
         onSecondaryTapDown: (details) async {
           final clipboardData = await Clipboard.getData('text/plain');
-          final hasSelection = !terminal.selection.isEmpty;
+          final hasSelection = !(terminal.lastState?.selection.isEmpty ?? true);
           final clipboardHasData = clipboardData?.text?.isNotEmpty == true;
 
           showMacosContextMenu(
@@ -159,10 +159,10 @@ class _MyHomePageState extends State<MyHomePage> {
                 trailing: Text('⌘ C'),
                 enabled: hasSelection,
                 onTap: () {
-                  final text = terminal.getSelectedText();
+                  final text = terminal.lastState?.selectedText ?? '';
                   Clipboard.setData(ClipboardData(text: text));
-                  terminal.selection.clear();
-                  terminal.debug.onMsg('copy ┤$text├');
+                  terminal.clearSelection();
+                  //terminal.debug.onMsg('copy ┤$text├');
                   terminal.refresh();
                   Navigator.of(context).pop();
                 },
@@ -173,7 +173,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 enabled: clipboardHasData,
                 onTap: () {
                   terminal.paste(clipboardData!.text!);
-                  terminal.debug.onMsg('paste ┤${clipboardData.text}├');
+                  //terminal.debug.onMsg('paste ┤${clipboardData.text}├');
                   Navigator.of(context).pop();
                 },
               ),
@@ -207,10 +207,10 @@ class _MyHomePageState extends State<MyHomePage> {
         },
         child: CupertinoScrollbar(
           controller: scrollController,
+          isAlwaysShown: true,
           child: TerminalView(
             scrollController: scrollController,
             terminal: terminal,
-            onResize: pty.resize,
             focusNode: focusNode,
             opacity: 0.85,
             style: TerminalStyle(
@@ -248,9 +248,13 @@ class _MyHomePageState extends State<MyHomePage> {
     return Platform.environment['SHELL'] ?? 'sh';
   }
 
-  PlatformBehavior getPlatform() {
+  PlatformBehavior getPlatform([bool forLocalShell = false]) {
     if (Platform.isWindows) {
       return PlatformBehaviors.windows;
+    }
+
+    if (forLocalShell && Platform.isMacOS) {
+      return PlatformBehaviors.mac;
     }
 
     return PlatformBehaviors.unix;
