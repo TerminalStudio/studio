@@ -41,7 +41,7 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   final tabs = TabsController();
   final group = TabGroupController();
   var tabCount = 0;
@@ -109,12 +109,28 @@ class _MyHomePageState extends State<MyHomePage> {
 
     // pty.write('cd\n');
 
+    Function? pendingNewStateRequest;
+    late final Ticker ticker;
+    ticker = createTicker((elapsed) {
+      if (pendingNewStateRequest != null) {
+        pendingNewStateRequest!();
+        pendingNewStateRequest = null;
+      }
+      ticker.stop();
+    });
+
     // final terminal = TerminalIsolate(
     final terminal = TerminalIsolate(
       onTitleChange: tab.setTitle,
       backend: backend,
       platform: getPlatform(true),
       maxLines: 10000,
+      doRequestNewState: (Function requestFunction) {
+        pendingNewStateRequest = requestFunction;
+        if (!ticker.isActive) {
+          ticker.start();
+        }
+      },
     );
 
     //terminal.debug.enable(true);
