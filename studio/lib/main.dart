@@ -102,7 +102,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       shell,
       // ['-l'],
       [],
-      blocking: false,
+      blocking: true,
     );
 
     final backend = PtyTerminalBackend(pty);
