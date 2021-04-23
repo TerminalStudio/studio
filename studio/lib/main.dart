@@ -109,28 +109,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
     // pty.write('cd\n');
 
-    Function? pendingNewStateRequest;
-    late final Ticker ticker;
-    ticker = createTicker((elapsed) {
-      if (pendingNewStateRequest != null) {
-        pendingNewStateRequest!();
-        pendingNewStateRequest = null;
-      }
-      ticker.stop();
-    });
-
     // final terminal = TerminalIsolate(
     final terminal = TerminalIsolate(
       onTitleChange: tab.setTitle,
       backend: backend,
       platform: getPlatform(true),
+      minRefreshDelay: Duration(milliseconds: 50),
       maxLines: 10000,
-      doRequestNewState: (Function requestFunction) {
-        pendingNewStateRequest = requestFunction;
-        if (!ticker.isActive) {
-          ticker.start();
-        }
-      },
     );
 
     //terminal.debug.enable(true);
