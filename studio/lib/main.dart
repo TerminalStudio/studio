@@ -98,28 +98,36 @@ class _MyHomePageState extends State<MyHomePage> {
 
     final shell = getShell();
 
-    final pty = PseudoTerminal.start(
-      shell,
-      // ['-l'],
-      [],
-      blocking: true,
+    final backend = PtyTerminalBackend(
+      PseudoTerminal.start(
+        shell,
+        // ['-l'],
+        [],
+        blocking: !BuildMode.isDebug,
+      ),
     );
-
-    final backend = PtyTerminalBackend(pty);
 
     // pty.write('cd\n');
 
-    // final terminal = TerminalIsolate(
-    final terminal = TerminalIsolate(
-      onTitleChange: tab.setTitle,
-      backend: backend,
-      platform: getPlatform(true),
-      minRefreshDelay: Duration(milliseconds: 50),
-      maxLines: 10000,
-    );
+    final terminal = !BuildMode.isDebug
+        ? TerminalIsolate(
+            onTitleChange: tab.setTitle,
+            backend: backend,
+            platform: getPlatform(true),
+            minRefreshDelay: Duration(milliseconds: 50),
+            maxLines: 10000,
+          )
+        : Terminal(
+            onTitleChange: tab.setTitle,
+            backend: backend,
+            platform: getPlatform(true),
+            maxLines: 10000,
+          );
 
     //terminal.debug.enable(true);
-    terminal.start();
+    if (terminal is TerminalIsolate) {
+      terminal.start();
+    }
 
     final focusNode = FocusNode();
     final scrollController = ScrollController();
@@ -148,7 +156,8 @@ class _MyHomePageState extends State<MyHomePage> {
         // },
         onSecondaryTapDown: (details) async {
           final clipboardData = await Clipboard.getData('text/plain');
-          final hasSelection = !(terminal.lastState?.selection.isEmpty ?? true);
+
+          final hasSelection = !(terminal.selection?.isEmpty ?? true);
           final clipboardHasData = clipboardData?.text?.isNotEmpty == true;
 
           showMacosContextMenu(
@@ -160,7 +169,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 trailing: Text('⌘ C'),
                 enabled: hasSelection,
                 onTap: () {
-                  final text = terminal.lastState?.selectedText ?? '';
+                  final text = terminal.selectedText ?? '';
                   Clipboard.setData(ClipboardData(text: text));
                   terminal.clearSelection();
                   //terminal.debug.onMsg('copy ┤$text├');
@@ -199,7 +208,7 @@ class _MyHomePageState extends State<MyHomePage> {
               MacosContextMenuItem(
                 content: Text('Kill'),
                 onTap: () {
-                  pty.kill();
+                  terminal.terminateBackend();
                   Navigator.of(context).pop();
                 },
               ),
@@ -229,7 +238,7 @@ class _MyHomePageState extends State<MyHomePage> {
         });
       },
       onClose: () {
-        pty.kill();
+        terminal.terminateBackend();
 
         tabCount--;
 

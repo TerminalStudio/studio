@@ -26,4 +26,9 @@ class PtyTerminalBackend implements TerminalBackend {
   void write(String input) {
     pty.write(input);
   }
+
+  @override
+  void terminate() {
+    pty.kill();
+  }
 }
