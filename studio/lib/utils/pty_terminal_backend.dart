@@ -31,4 +31,9 @@ class PtyTerminalBackend implements TerminalBackend {
   void terminate() {
     pty.kill();
   }
+
+  @override
+  void ackProcessed() {
+    pty.ackProcessed();
+  }
 }
