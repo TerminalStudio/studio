@@ -103,14 +103,15 @@ class _MyHomePageState extends State<MyHomePage> {
         shell,
         // ['-l'],
         [],
-        blocking: (!BuildMode.isDebug) || true,
-        ackProcessed: (!BuildMode.isDebug) || true,
+        blocking:
+            false, //!BuildMode.isDebug, //disabled for now due to problems with the blocking pseudo terminal
+        ackProcessed: !BuildMode.isDebug,
       ),
     );
 
     // pty.write('cd\n');
 
-    final terminal = (!BuildMode.isDebug) || true
+    final terminal = !BuildMode.isDebug
         ? TerminalIsolate(
             onTitleChange: tab.setTitle,
             backend: backend,
