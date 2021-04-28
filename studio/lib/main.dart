@@ -70,8 +70,9 @@ class _MyHomePageState extends State<MyHomePage> {
             actions: [
               TabsGroupAction(
                 icon: CupertinoIcons.add,
-                onTap: (group) {
-                  group.addTab(buildTab(), activate: true);
+                onTap: (group) async {
+                  final tab = await buildTab();
+                  group.addTab(tab, activate: true);
                 },
               )
             ],
@@ -81,11 +82,11 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void addTab() {
-    this.group.addTab(buildTab(), activate: true);
+  void addTab() async {
+    this.group.addTab(await buildTab(), activate: true);
   }
 
-  Tab buildTab() {
+  Future<Tab> buildTab() async {
     tabCount++;
 
     final tab = TabController();
@@ -111,7 +112,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     // pty.write('cd\n');
 
-    final terminal = !BuildMode.isDebug
+    final terminal = (!BuildMode.isDebug) || true
         ? TerminalIsolate(
             onTitleChange: tab.setTitle,
             backend: backend,
@@ -128,7 +129,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     //terminal.debug.enable(true);
     if (terminal is TerminalIsolate) {
-      terminal.start();
+      await terminal.start();
     }
 
     final focusNode = FocusNode();
