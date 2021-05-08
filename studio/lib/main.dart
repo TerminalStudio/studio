@@ -112,7 +112,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     // pty.write('cd\n');
 
-    final terminal = (!BuildMode.isDebug) || true
+    final terminal = (!BuildMode.isDebug)
         ? TerminalIsolate(
             onTitleChange: tab.setTitle,
             backend: backend,
