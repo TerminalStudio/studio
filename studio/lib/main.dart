@@ -88,6 +88,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<Tab> buildTab() async {
     tabCount++;
+    var tabIsClosed = false;
 
     final tab = TabController();
 
@@ -241,6 +242,13 @@ class _MyHomePageState extends State<MyHomePage> {
         });
       },
       onClose: () {
+        // this handler can be called multiple times.
+        // e.g. click to close tab => handler => terminateBackend => exitedEvent => close tab
+        // which leads to an inconsistent tabCount value
+        if (tabIsClosed) {
+          return;
+        }
+        tabIsClosed = true;
         terminal.terminateBackend();
 
         tabCount--;
