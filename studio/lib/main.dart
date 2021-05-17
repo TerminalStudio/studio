@@ -6,6 +6,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:pty/pty.dart';
 import 'package:studio/utils/build_mode.dart';
+import 'package:studio/utils/pty_terminal_backend.dart';
 import 'package:tabs/tabs.dart';
 
 import 'package:flutter/material.dart' hide Tab, TabController;
@@ -69,8 +70,9 @@ class _MyHomePageState extends State<MyHomePage> {
             actions: [
               TabsGroupAction(
                 icon: CupertinoIcons.add,
-                onTap: (group) {
-                  group.addTab(buildTab(), activate: true);
+                onTap: (group) async {
+                  final tab = await buildTab();
+                  group.addTab(tab, activate: true);
                 },
               )
             ],
@@ -80,12 +82,13 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void addTab() {
-    this.group.addTab(buildTab(), activate: true);
+  void addTab() async {
+    this.group.addTab(await buildTab(), activate: true);
   }
 
-  Tab buildTab() {
+  Future<Tab> buildTab() async {
     tabCount++;
+    var tabIsClosed = false;
 
     final tab = TabController();
 
@@ -97,26 +100,38 @@ class _MyHomePageState extends State<MyHomePage> {
 
     final shell = getShell();
 
-    final pty = PseudoTerminal.start(
-      shell,
-      // ['-l'],
-      [],
-      blocking: !BuildMode.isDebug,
+    final backend = PtyTerminalBackend(
+      PseudoTerminal.start(
+        shell,
+        // ['-l'],
+        [],
+        blocking:
+            false, //!BuildMode.isDebug, //disabled for now due to problems with the blocking pseudo terminal
+        ackProcessed: !BuildMode.isDebug,
+      ),
     );
 
     // pty.write('cd\n');
 
-    // final terminal = TerminalIsolate(
-    final terminal = Terminal(
-      onTitleChange: tab.setTitle,
-      onInput: pty.write,
-      platform: getPlatform(),
-      maxLines: 10000,
-    );
+    final terminal = (!BuildMode.isDebug)
+        ? TerminalIsolate(
+            onTitleChange: tab.setTitle,
+            backend: backend,
+            platform: getPlatform(true),
+            minRefreshDelay: Duration(milliseconds: 50),
+            maxLines: 10000,
+          )
+        : Terminal(
+            onTitleChange: tab.setTitle,
+            backend: backend,
+            platform: getPlatform(true),
+            maxLines: 10000,
+          );
 
-    // terminal.start();
-
-    pty.out.listen(terminal.write);
+    //terminal.debug.enable(true);
+    if (terminal is TerminalIsolate) {
+      await terminal.start();
+    }
 
     final focusNode = FocusNode();
     final scrollController = ScrollController();
@@ -125,9 +140,7 @@ class _MyHomePageState extends State<MyHomePage> {
       focusNode.requestFocus();
     });
 
-    pty.exitCode.then((_) {
-      tab.requestClose();
-    });
+    terminal.backendExited.then((_) => tab.requestClose());
 
     return Tab(
       controller: tab,
@@ -147,7 +160,8 @@ class _MyHomePageState extends State<MyHomePage> {
         // },
         onSecondaryTapDown: (details) async {
           final clipboardData = await Clipboard.getData('text/plain');
-          final hasSelection = !terminal.selection.isEmpty;
+
+          final hasSelection = !(terminal.selection?.isEmpty ?? true);
           final clipboardHasData = clipboardData?.text?.isNotEmpty == true;
 
           showMacosContextMenu(
@@ -159,10 +173,10 @@ class _MyHomePageState extends State<MyHomePage> {
                 trailing: Text('⌘ C'),
                 enabled: hasSelection,
                 onTap: () {
-                  final text = terminal.getSelectedText();
+                  final text = terminal.selectedText ?? '';
                   Clipboard.setData(ClipboardData(text: text));
-                  terminal.selection.clear();
-                  terminal.debug.onMsg('copy ┤$text├');
+                  terminal.clearSelection();
+                  //terminal.debug.onMsg('copy ┤$text├');
                   terminal.refresh();
                   Navigator.of(context).pop();
                 },
@@ -173,7 +187,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 enabled: clipboardHasData,
                 onTap: () {
                   terminal.paste(clipboardData!.text!);
-                  terminal.debug.onMsg('paste ┤${clipboardData.text}├');
+                  //terminal.debug.onMsg('paste ┤${clipboardData.text}├');
                   Navigator.of(context).pop();
                 },
               ),
@@ -198,7 +212,7 @@ class _MyHomePageState extends State<MyHomePage> {
               MacosContextMenuItem(
                 content: Text('Kill'),
                 onTap: () {
-                  pty.kill();
+                  terminal.terminateBackend();
                   Navigator.of(context).pop();
                 },
               ),
@@ -207,10 +221,10 @@ class _MyHomePageState extends State<MyHomePage> {
         },
         child: CupertinoScrollbar(
           controller: scrollController,
+          isAlwaysShown: true,
           child: TerminalView(
             scrollController: scrollController,
             terminal: terminal,
-            onResize: pty.resize,
             focusNode: focusNode,
             opacity: 0.85,
             style: TerminalStyle(
@@ -228,7 +242,14 @@ class _MyHomePageState extends State<MyHomePage> {
         });
       },
       onClose: () {
-        pty.kill();
+        // this handler can be called multiple times.
+        // e.g. click to close tab => handler => terminateBackend => exitedEvent => close tab
+        // which leads to an inconsistent tabCount value
+        if (tabIsClosed) {
+          return;
+        }
+        tabIsClosed = true;
+        terminal.terminateBackend();
 
         tabCount--;
 
@@ -248,9 +269,13 @@ class _MyHomePageState extends State<MyHomePage> {
     return Platform.environment['SHELL'] ?? 'sh';
   }
 
-  PlatformBehavior getPlatform() {
+  PlatformBehavior getPlatform([bool forLocalShell = false]) {
     if (Platform.isWindows) {
       return PlatformBehaviors.windows;
+    }
+
+    if (forLocalShell && Platform.isMacOS) {
+      return PlatformBehaviors.mac;
     }
 
     return PlatformBehaviors.unix;
