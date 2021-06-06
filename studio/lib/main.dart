@@ -5,12 +5,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:pty/pty.dart';
+import 'package:studio/shortcut/intents.dart';
 import 'package:studio/utils/build_mode.dart';
 import 'package:studio/utils/pty_terminal_backend.dart';
 import 'package:tabs/tabs.dart';
 
 import 'package:flutter/material.dart' hide Tab, TabController;
 import 'package:xterm/flutter.dart';
+import 'package:xterm/isolate.dart';
 import 'package:xterm/theme/terminal_style.dart';
 import 'package:xterm/xterm.dart';
 
@@ -43,7 +45,9 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final tabs = TabsController();
+
   final group = TabGroupController();
+
   var tabCount = 0;
 
   @override
@@ -131,7 +135,6 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     final focusNode = FocusNode();
-    final scrollController = ScrollController();
 
     SchedulerBinding.instance!.addPostFrameCallback((timeStamp) {
       focusNode.requestFocus();
@@ -216,18 +219,9 @@ class _MyHomePageState extends State<MyHomePage> {
             ],
           );
         },
-        child: CupertinoScrollbar(
-          controller: scrollController,
-          isAlwaysShown: true,
-          child: TerminalView(
-            scrollController: scrollController,
-            terminal: terminal,
-            focusNode: focusNode,
-            opacity: 0.85,
-            style: TerminalStyle(
-              fontSize: 15,
-            ),
-          ),
+        child: TerminalTab(
+          terminal: terminal,
+          focusNode: focusNode,
         ),
       ),
       onActivate: () {
@@ -270,4 +264,89 @@ class _MyHomePageState extends State<MyHomePage> {
 
     return PlatformBehaviors.unix;
   }
+}
+
+class TerminalTab extends StatefulWidget {
+  TerminalTab({
+    required this.terminal,
+    required this.focusNode,
+  });
+
+  final TerminalUiInteraction terminal;
+  final FocusNode focusNode;
+  final scrollController = ScrollController();
+
+  @override
+  State<TerminalTab> createState() => _TerminalTabState();
+}
+
+class _TerminalTabState extends State<TerminalTab> {
+  var fontSize = 14.0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Shortcuts(
+      shortcuts: {
+        _withModifier(LogicalKeyboardKey.equal): FontSizeIncreaseIntent(1),
+        _withModifier(LogicalKeyboardKey.minus): FontSizeDecreaseIntent(1),
+      },
+      child: Actions(
+        actions: {
+          FontSizeIncreaseIntent: CallbackAction<FontSizeIncreaseIntent>(
+            onInvoke: onFontSizeIncreaseIntent,
+          ),
+          FontSizeDecreaseIntent: CallbackAction<FontSizeDecreaseIntent>(
+            onInvoke: onFontSizeDecreaseIntent,
+          ),
+        },
+        child: CupertinoScrollbar(
+          controller: widget.scrollController,
+          isAlwaysShown: true,
+          child: TerminalView(
+            scrollController: widget.scrollController,
+            terminal: widget.terminal,
+            focusNode: widget.focusNode,
+            opacity: 0.85,
+            style: TerminalStyle(
+              fontSize: fontSize,
+              fontFamily: const ['Cascadia Mono'],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void updateFontSize(int delta) {
+    final minFontSize = 4;
+    final maxFontSize = 40;
+
+    final newFontSize = fontSize + delta;
+
+    if (newFontSize < minFontSize || newFontSize > maxFontSize) {
+      return;
+    }
+
+    setState(() => fontSize = newFontSize);
+  }
+
+  void onFontSizeIncreaseIntent(FontSizeIncreaseIntent intent) {
+    updateFontSize(1);
+  }
+
+  void onFontSizeDecreaseIntent(FontSizeDecreaseIntent intent) {
+    updateFontSize(-1);
+  }
+}
+
+LogicalKeySet _withModifier(LogicalKeyboardKey key) {
+  late final LogicalKeyboardKey modifier;
+
+  if (Platform.isMacOS) {
+    modifier = LogicalKeyboardKey.meta;
+  } else {
+    modifier = LogicalKeyboardKey.control;
+  }
+
+  return LogicalKeySet(modifier, key);
 }
