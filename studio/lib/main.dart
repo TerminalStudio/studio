@@ -176,11 +176,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 trailing: Text('⌘ C'),
                 enabled: hasSelection,
                 onTap: () {
-                  final text = terminal.selectedText ?? '';
-                  Clipboard.setData(ClipboardData(text: text));
-                  terminal.clearSelection();
-                  //terminal.debug.onMsg('copy ┤$text├');
-                  terminal.refresh();
+                  _TerminalTabState.doCopy(terminal);
                   Navigator.of(context).pop();
                 },
               ),
@@ -189,8 +185,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 trailing: Text('⌘ V'),
                 enabled: clipboardHasData,
                 onTap: () {
-                  terminal.paste(clipboardData!.text!);
-                  //terminal.debug.onMsg('paste ┤${clipboardData.text}├');
+                  _TerminalTabState.doPaste(terminal);
                   Navigator.of(context).pop();
                 },
               ),
@@ -298,7 +293,12 @@ class _TerminalTabState extends State<TerminalTab> {
     return Shortcuts(
       shortcuts: {
         _withModifier(LogicalKeyboardKey.equal): FontSizeIncreaseIntent(1),
+        _withModifier(LogicalKeyboardKey.add): FontSizeIncreaseIntent(1),
         _withModifier(LogicalKeyboardKey.minus): FontSizeDecreaseIntent(1),
+        _withModifier(LogicalKeyboardKey.keyC, needsExtraModifier: true):
+            CopyIntent(widget.terminal),
+        _withModifier(LogicalKeyboardKey.keyV, needsExtraModifier: true):
+            PasteIntent(widget.terminal),
       },
       child: Actions(
         actions: {
@@ -307,6 +307,12 @@ class _TerminalTabState extends State<TerminalTab> {
           ),
           FontSizeDecreaseIntent: CallbackAction<FontSizeDecreaseIntent>(
             onInvoke: onFontSizeDecreaseIntent,
+          ),
+          CopyIntent: CallbackAction<CopyIntent>(
+            onInvoke: onCopyIntent,
+          ),
+          PasteIntent: CallbackAction<PasteIntent>(
+            onInvoke: onPasteIntent,
           ),
         },
         child: CupertinoScrollbar(
@@ -347,16 +353,51 @@ class _TerminalTabState extends State<TerminalTab> {
   void onFontSizeDecreaseIntent(FontSizeDecreaseIntent intent) {
     updateFontSize(-1);
   }
-}
 
-LogicalKeySet _withModifier(LogicalKeyboardKey key) {
-  late final LogicalKeyboardKey modifier;
-
-  if (Platform.isMacOS) {
-    modifier = LogicalKeyboardKey.meta;
-  } else {
-    modifier = LogicalKeyboardKey.control;
+  void onCopyIntent(CopyIntent intent) {
+    doCopy(intent.terminal);
   }
 
-  return LogicalKeySet(modifier, key);
+  void onPasteIntent(PasteIntent intent) async {
+    await doPaste(intent.terminal);
+  }
+
+  static void doCopy(TerminalUiInteraction terminal) {
+    final text = terminal.selectedText ?? '';
+    Clipboard.setData(ClipboardData(text: text));
+    terminal.clearSelection();
+    //terminal.debug.onMsg('copy ┤$text├');
+    terminal.refresh();
+  }
+
+  static Future doPaste(TerminalUiInteraction terminal) async {
+    final clipboardData = await Clipboard.getData('text/plain');
+
+    final clipboardHasData = clipboardData?.text?.isNotEmpty == true;
+
+    if (clipboardHasData) {
+      terminal.paste(clipboardData!.text!);
+      //terminal.debug.onMsg('paste ┤${clipboardData.text}├');
+    }
+  }
+}
+
+LogicalKeySet _withModifier(LogicalKeyboardKey key,
+    {needsExtraModifier = false}) {
+  final modifier = List<LogicalKeyboardKey>.empty(growable: true);
+
+  if (Platform.isMacOS) {
+    modifier.add(LogicalKeyboardKey.meta);
+  } else {
+    modifier.add(LogicalKeyboardKey.control);
+    if (needsExtraModifier) {
+      modifier.add(LogicalKeyboardKey.shift);
+    }
+  }
+  return modifier.length == 1
+      ? LogicalKeySet(modifier[0], key)
+      : modifier.length == 2
+          ? LogicalKeySet(modifier[0], modifier[1], key)
+          : throw ArgumentError.value(
+              modifier.length, 'modifier', 'Unexpected number of modifiers!');
 }
