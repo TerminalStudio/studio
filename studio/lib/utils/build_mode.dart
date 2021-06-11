@@ -1,5 +1,5 @@
 /// See: https://github.com/flutter/flutter/issues/11392
-/// 
+///
 enum _BuildMode {
   release,
   debug,

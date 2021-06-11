@@ -5,12 +5,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:pty/pty.dart';
+import 'package:studio/shortcut/intents.dart';
 import 'package:studio/utils/build_mode.dart';
 import 'package:studio/utils/pty_terminal_backend.dart';
 import 'package:tabs/tabs.dart';
 
 import 'package:flutter/material.dart' hide Tab, TabController;
 import 'package:xterm/flutter.dart';
+import 'package:xterm/isolate.dart';
 import 'package:xterm/theme/terminal_style.dart';
 import 'package:xterm/xterm.dart';
 
@@ -43,7 +45,9 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final tabs = TabsController();
+
   final group = TabGroupController();
+
   var tabCount = 0;
 
   @override
@@ -134,7 +138,6 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     final focusNode = FocusNode();
-    final scrollController = ScrollController();
 
     SchedulerBinding.instance!.addPostFrameCallback((timeStamp) {
       focusNode.requestFocus();
@@ -173,11 +176,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 trailing: Text('⌘ C'),
                 enabled: hasSelection,
                 onTap: () {
-                  final text = terminal.selectedText ?? '';
-                  Clipboard.setData(ClipboardData(text: text));
-                  terminal.clearSelection();
-                  //terminal.debug.onMsg('copy ┤$text├');
-                  terminal.refresh();
+                  _TerminalTabState.doCopy(terminal);
                   Navigator.of(context).pop();
                 },
               ),
@@ -186,8 +185,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 trailing: Text('⌘ V'),
                 enabled: clipboardHasData,
                 onTap: () {
-                  terminal.paste(clipboardData!.text!);
-                  //terminal.debug.onMsg('paste ┤${clipboardData.text}├');
+                  _TerminalTabState.doPaste(terminal);
                   Navigator.of(context).pop();
                 },
               ),
@@ -219,18 +217,9 @@ class _MyHomePageState extends State<MyHomePage> {
             ],
           );
         },
-        child: CupertinoScrollbar(
-          controller: scrollController,
-          isAlwaysShown: true,
-          child: TerminalView(
-            scrollController: scrollController,
-            terminal: terminal,
-            focusNode: focusNode,
-            opacity: 0.85,
-            style: TerminalStyle(
-              fontSize: 15,
-            ),
-          ),
+        child: TerminalTab(
+          terminal: terminal,
+          focusNode: focusNode,
         ),
       ),
       onActivate: () {
@@ -280,4 +269,135 @@ class _MyHomePageState extends State<MyHomePage> {
 
     return PlatformBehaviors.unix;
   }
+}
+
+class TerminalTab extends StatefulWidget {
+  TerminalTab({
+    required this.terminal,
+    required this.focusNode,
+  });
+
+  final TerminalUiInteraction terminal;
+  final FocusNode focusNode;
+  final scrollController = ScrollController();
+
+  @override
+  State<TerminalTab> createState() => _TerminalTabState();
+}
+
+class _TerminalTabState extends State<TerminalTab> {
+  var fontSize = 14.0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Shortcuts(
+      shortcuts: {
+        _withModifier(LogicalKeyboardKey.equal): FontSizeIncreaseIntent(1),
+        _withModifier(LogicalKeyboardKey.add): FontSizeIncreaseIntent(1),
+        _withModifier(LogicalKeyboardKey.minus): FontSizeDecreaseIntent(1),
+        _withModifier(LogicalKeyboardKey.keyC, needsExtraModifier: true):
+            CopyIntent(widget.terminal),
+        _withModifier(LogicalKeyboardKey.keyV, needsExtraModifier: true):
+            PasteIntent(widget.terminal),
+      },
+      child: Actions(
+        actions: {
+          FontSizeIncreaseIntent: CallbackAction<FontSizeIncreaseIntent>(
+            onInvoke: onFontSizeIncreaseIntent,
+          ),
+          FontSizeDecreaseIntent: CallbackAction<FontSizeDecreaseIntent>(
+            onInvoke: onFontSizeDecreaseIntent,
+          ),
+          CopyIntent: CallbackAction<CopyIntent>(
+            onInvoke: onCopyIntent,
+          ),
+          PasteIntent: CallbackAction<PasteIntent>(
+            onInvoke: onPasteIntent,
+          ),
+        },
+        child: CupertinoScrollbar(
+          controller: widget.scrollController,
+          isAlwaysShown: true,
+          child: TerminalView(
+            scrollController: widget.scrollController,
+            terminal: widget.terminal,
+            focusNode: widget.focusNode,
+            opacity: 0.85,
+            style: TerminalStyle(
+              fontSize: fontSize,
+              fontFamily: const ['Cascadia Mono'],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void updateFontSize(int delta) {
+    final minFontSize = 4;
+    final maxFontSize = 40;
+
+    final newFontSize = fontSize + delta;
+
+    if (newFontSize < minFontSize || newFontSize > maxFontSize) {
+      return;
+    }
+
+    setState(() => fontSize = newFontSize);
+  }
+
+  void onFontSizeIncreaseIntent(FontSizeIncreaseIntent intent) {
+    updateFontSize(1);
+  }
+
+  void onFontSizeDecreaseIntent(FontSizeDecreaseIntent intent) {
+    updateFontSize(-1);
+  }
+
+  void onCopyIntent(CopyIntent intent) {
+    doCopy(intent.terminal);
+  }
+
+  void onPasteIntent(PasteIntent intent) async {
+    await doPaste(intent.terminal);
+  }
+
+  static void doCopy(TerminalUiInteraction terminal) {
+    final text = terminal.selectedText ?? '';
+    Clipboard.setData(ClipboardData(text: text));
+    terminal.clearSelection();
+    //terminal.debug.onMsg('copy ┤$text├');
+    terminal.refresh();
+  }
+
+  static Future doPaste(TerminalUiInteraction terminal) async {
+    final clipboardData = await Clipboard.getData('text/plain');
+
+    final clipboardHasData = clipboardData?.text?.isNotEmpty == true;
+
+    if (clipboardHasData) {
+      terminal.paste(clipboardData!.text!);
+      //terminal.debug.onMsg('paste ┤${clipboardData.text}├');
+    }
+  }
+}
+
+LogicalKeySet _withModifier(LogicalKeyboardKey key,
+    {needsExtraModifier = false}) {
+  final modifier = List<LogicalKeyboardKey>.empty(growable: true);
+
+  if (Platform.isMacOS) {
+    modifier.add(LogicalKeyboardKey.meta);
+  } else {
+    modifier.add(LogicalKeyboardKey.control);
+    if (needsExtraModifier) {
+      modifier.add(LogicalKeyboardKey.shift);
+    }
+  }
+  return modifier.length == 1
+      ? LogicalKeySet(modifier[0], key)
+      : modifier.length == 2
+          ? LogicalKeySet(modifier[0], modifier[1], key)
+          : throw ArgumentError.value(
+              modifier.length, 'modifier', 'Unexpected number of modifiers!');
 }
