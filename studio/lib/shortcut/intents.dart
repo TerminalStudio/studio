@@ -1,73 +1,16 @@
 import 'package:flutter/widgets.dart';
 import 'package:xterm/terminal/terminal_ui_interaction.dart';
 
-abstract class TerminalIntent extends Intent {
-  const TerminalIntent(this.isEnabled);
+class ZoomInIntent extends Intent {}
 
-  final bool isEnabled;
+class ZoomOutIntent extends Intent {}
 
-  String get name;
-}
+class CopyIntent extends Intent {}
 
-class FontSizeIncreaseIntent extends TerminalIntent {
-  const FontSizeIncreaseIntent(this.pixels, bool isEnabled) : super(isEnabled);
+class PasteIntent extends Intent {}
 
-  final int pixels;
+class SelectAllIntent extends Intent {}
 
-  @override
-  String get name => 'Zoom in';
-}
+class ClearIntent extends Intent {}
 
-class FontSizeDecreaseIntent extends TerminalIntent {
-  const FontSizeDecreaseIntent(this.pixels, bool isEnabled) : super(isEnabled);
-
-  final int pixels;
-
-  @override
-  String get name => 'Zoom out';
-}
-
-class CopyIntent extends TerminalIntent {
-  const CopyIntent(this.terminal, bool isEnabled) : super(isEnabled);
-
-  final TerminalUiInteraction terminal;
-
-  @override
-  String get name => 'Copy';
-}
-
-class PasteIntent extends TerminalIntent {
-  const PasteIntent(this.terminal, bool isEnabled) : super(isEnabled);
-
-  final TerminalUiInteraction terminal;
-
-  @override
-  String get name => 'Paste';
-}
-
-class SelectAllIntent extends TerminalIntent {
-  const SelectAllIntent(this.terminal, bool isEnabled) : super(isEnabled);
-
-  final TerminalUiInteraction terminal;
-
-  @override
-  String get name => 'Select all';
-}
-
-class ClearIntent extends TerminalIntent {
-  const ClearIntent(this.terminal, bool isEnabled) : super(isEnabled);
-
-  final TerminalUiInteraction terminal;
-
-  @override
-  String get name => 'Clear';
-}
-
-class KillIntent extends TerminalIntent {
-  const KillIntent(this.terminal, bool isEnabled) : super(isEnabled);
-
-  final TerminalUiInteraction terminal;
-
-  @override
-  String get name => 'Kill';
-}
+class KillIntent extends Intent {}
