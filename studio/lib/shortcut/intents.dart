@@ -1,26 +1,16 @@
 import 'package:flutter/widgets.dart';
 import 'package:xterm/terminal/terminal_ui_interaction.dart';
 
-class FontSizeIncreaseIntent extends Intent {
-  const FontSizeIncreaseIntent(this.pixels);
+class ZoomInIntent extends Intent {}
 
-  final int pixels;
-}
+class ZoomOutIntent extends Intent {}
 
-class FontSizeDecreaseIntent extends Intent {
-  const FontSizeDecreaseIntent(this.pixels);
+class CopyIntent extends Intent {}
 
-  final int pixels;
-}
+class PasteIntent extends Intent {}
 
-class CopyIntent extends Intent {
-  const CopyIntent(this.terminal);
+class SelectAllIntent extends Intent {}
 
-  final TerminalUiInteraction terminal;
-}
+class ClearIntent extends Intent {}
 
-class PasteIntent extends Intent {
-  const PasteIntent(this.terminal);
-
-  final TerminalUiInteraction terminal;
-}
+class KillIntent extends Intent {}

@@ -6,6 +6,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:pty/pty.dart';
 import 'package:studio/shortcut/intents.dart';
+import 'package:studio/shortcut/terminal_shortcut.dart';
 import 'package:studio/utils/build_mode.dart';
 import 'package:studio/utils/pty_terminal_backend.dart';
 import 'package:tabs/tabs.dart';
@@ -148,79 +149,9 @@ class _MyHomePageState extends State<MyHomePage> {
     return Tab(
       controller: tab,
       title: 'Terminal',
-      content: GestureDetector(
-        onLongPress: () {
-          print('onLongPress');
-        },
-        // onDoubleTapDown: (details) {
-        onDoubleTap: () {
-          print('onDoubleTap \$details');
-        },
-        //   print('onDoubleTapDown \$details');
-        // },
-        // onTertiaryTapDown: (details) {
-        //   print('onTertiaryTapDown $details');
-        // },
-        onSecondaryTapDown: (details) async {
-          final clipboardData = await Clipboard.getData('text/plain');
-
-          final hasSelection = !(terminal.selection?.isEmpty ?? true);
-          final clipboardHasData = clipboardData?.text?.isNotEmpty == true;
-
-          showMacosContextMenu(
-            context: context,
-            globalPosition: details.globalPosition,
-            children: [
-              MacosContextMenuItem(
-                content: Text('Copy'),
-                trailing: Text('⌘ C'),
-                enabled: hasSelection,
-                onTap: () {
-                  _TerminalTabState.doCopy(terminal);
-                  Navigator.of(context).pop();
-                },
-              ),
-              MacosContextMenuItem(
-                content: Text('Paste'),
-                trailing: Text('⌘ V'),
-                enabled: clipboardHasData,
-                onTap: () {
-                  _TerminalTabState.doPaste(terminal);
-                  Navigator.of(context).pop();
-                },
-              ),
-              MacosContextMenuItem(
-                content: Text('Select All'),
-                trailing: Text('⌘ A'),
-                onTap: () {
-                  print('Select All is currently not implemented.');
-                  Navigator.of(context).pop();
-                },
-              ),
-              MacosContextMenuDivider(),
-              MacosContextMenuItem(
-                content: Text('Clear'),
-                trailing: Text('⌘ K'),
-                onTap: () {
-                  print('Clear is currently not implemented.');
-                  Navigator.of(context).pop();
-                },
-              ),
-              MacosContextMenuDivider(),
-              MacosContextMenuItem(
-                content: Text('Kill'),
-                onTap: () {
-                  terminal.terminateBackend();
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
-        child: TerminalTab(
-          terminal: terminal,
-          focusNode: focusNode,
-        ),
+      content: TerminalTab(
+        terminal: terminal,
+        focusNode: focusNode,
       ),
       onActivate: () {
         focusNode.requestFocus();
@@ -288,44 +219,208 @@ class TerminalTab extends StatefulWidget {
 class _TerminalTabState extends State<TerminalTab> {
   var fontSize = 14.0;
 
+  List<TerminalShortcut> getShortcuts() => [
+        TerminalShortcut(
+            name: 'Zoom In',
+            onExecute: (terminal) async => onZoomIn(),
+            keyCombinations: [
+              _withModifier(LogicalKeyboardKey.add),
+              _withModifier(LogicalKeyboardKey.equal),
+            ],
+            intent: ZoomInIntent()),
+        TerminalShortcut(
+            name: 'Zoom Out',
+            onExecute: (terminal) async => onZoomOut(),
+            keyCombinations: [
+              _withModifier(LogicalKeyboardKey.minus),
+            ],
+            intent: ZoomOutIntent()),
+        TerminalShortcut(
+            name: 'Copy',
+            onExecute: (terminal) async => onCopy(terminal),
+            onIsAvailable: (terminal) async {
+              final hasSelection =
+                  !(widget.terminal.selection?.isEmpty ?? true);
+              return hasSelection;
+            },
+            keyCombinations: [
+              _withModifier(LogicalKeyboardKey.keyC, needsExtraModifier: true),
+            ],
+            intent: CopyIntent()),
+        TerminalShortcut(
+            name: 'Paste',
+            onExecute: (terminal) async => onPaste(terminal),
+            onIsAvailable: (terminal) async {
+              final clipboardData = await Clipboard.getData('text/plain');
+
+              final clipboardHasData = clipboardData?.text?.isNotEmpty == true;
+
+              return clipboardHasData;
+            },
+            keyCombinations: [
+              _withModifier(LogicalKeyboardKey.keyV, needsExtraModifier: true),
+            ],
+            intent: PasteIntent()),
+        TerminalShortcut(
+            name: 'Select all',
+            onExecute: (terminal) async => onSelectAll(terminal),
+            keyCombinations: [
+              _withModifier(LogicalKeyboardKey.keyA, needsExtraModifier: true),
+            ],
+            intent: SelectAllIntent()),
+        TerminalShortcut(
+            name: 'Clear',
+            onExecute: (terminal) async => onClear(terminal),
+            keyCombinations: [
+              _withModifier(LogicalKeyboardKey.keyK, needsExtraModifier: true),
+            ],
+            intent: ClearIntent()),
+        TerminalShortcut(
+            name: 'Kill',
+            onExecute: (terminal) async => onKill(terminal),
+            keyCombinations: [
+              _withModifier(LogicalKeyboardKey.keyE, needsExtraModifier: true),
+            ],
+            intent: KillIntent()),
+      ];
+
+  String _shortcutKeysToString(Iterable<LogicalKeyboardKey>? triggers) {
+    if (triggers == null) {
+      return '';
+    }
+    String specialKeySequence = '';
+    String normalKeySequence = '';
+    var metaHandled = false;
+    var controlHandled = false;
+    var altHandled = false;
+    var shiftHandled = false;
+    for (final trigger in triggers) {
+      if (trigger == LogicalKeyboardKey.meta ||
+          trigger == LogicalKeyboardKey.metaLeft ||
+          trigger == LogicalKeyboardKey.metaRight) {
+        if (metaHandled) {
+          continue;
+        }
+        specialKeySequence += '⌘';
+        metaHandled = true;
+      } else if (trigger == LogicalKeyboardKey.shift ||
+          trigger == LogicalKeyboardKey.shiftLeft ||
+          trigger == LogicalKeyboardKey.shiftRight) {
+        if (shiftHandled) {
+          continue;
+        }
+        specialKeySequence += '⇧';
+        shiftHandled = true;
+      } else if (trigger == LogicalKeyboardKey.control ||
+          trigger == LogicalKeyboardKey.controlLeft ||
+          trigger == LogicalKeyboardKey.controlRight) {
+        if (controlHandled) {
+          continue;
+        }
+        specialKeySequence += '⌃';
+        controlHandled = true;
+      } else if (trigger == LogicalKeyboardKey.alt ||
+          trigger == LogicalKeyboardKey.altLeft ||
+          trigger == LogicalKeyboardKey.altRight) {
+        if (altHandled) {
+          continue;
+        }
+        specialKeySequence += '⌥';
+        altHandled = true;
+      } else {
+        normalKeySequence += trigger.keyLabel;
+      }
+    }
+    return '$specialKeySequence $normalKeySequence';
+  }
+
+  Future<List<MacosContextMenuItem>> createContextMenuItems(
+      BuildContext context, TerminalUiInteraction terminal) async {
+    final result = List<MacosContextMenuItem>.empty(growable: true);
+    final shortcuts = getShortcuts();
+
+    for (final shortcut in shortcuts) {
+      final firstAlternative = shortcut.keyCombinations[0];
+      result.add(MacosContextMenuItem(
+        content: Text(shortcut.name),
+        trailing: Text(_shortcutKeysToString(firstAlternative.triggers)),
+        enabled: await shortcut.isAvailable(terminal),
+        onTap: () async {
+          await shortcut.execute(terminal);
+          Navigator.of(context).pop();
+        },
+      ));
+    }
+    return result;
+  }
+
+  static Map<ShortcutActivator, Intent> shortcutsToActivatorMap(
+      List<TerminalShortcut> shortcuts) {
+    final result = Map<ShortcutActivator, Intent>();
+
+    for (final shortcut in shortcuts) {
+      for (final keyCombination in shortcut.keyCombinations) {
+        result.putIfAbsent(keyCombination, () => shortcut.intent);
+      }
+    }
+
+    return result;
+  }
+
+  static Map<Type, Action<Intent>> shortcutsToActions(
+      List<TerminalShortcut> shortcuts, TerminalUiInteraction terminal) {
+    final result = Map<Type, Action<Intent>>();
+
+    for (final shortcut in shortcuts) {
+      result.putIfAbsent(
+          shortcut.intent.runtimeType,
+          () => CallbackAction(
+                onInvoke: (intent) => shortcut.execute(terminal),
+              ));
+    }
+
+    return result;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final shortcuts = getShortcuts();
     return Shortcuts(
-      shortcuts: {
-        _withModifier(LogicalKeyboardKey.equal): FontSizeIncreaseIntent(1),
-        _withModifier(LogicalKeyboardKey.add): FontSizeIncreaseIntent(1),
-        _withModifier(LogicalKeyboardKey.minus): FontSizeDecreaseIntent(1),
-        _withModifier(LogicalKeyboardKey.keyC, needsExtraModifier: true):
-            CopyIntent(widget.terminal),
-        _withModifier(LogicalKeyboardKey.keyV, needsExtraModifier: true):
-            PasteIntent(widget.terminal),
-      },
+      shortcuts: shortcutsToActivatorMap(shortcuts),
       child: Actions(
-        actions: {
-          FontSizeIncreaseIntent: CallbackAction<FontSizeIncreaseIntent>(
-            onInvoke: onFontSizeIncreaseIntent,
-          ),
-          FontSizeDecreaseIntent: CallbackAction<FontSizeDecreaseIntent>(
-            onInvoke: onFontSizeDecreaseIntent,
-          ),
-          CopyIntent: CallbackAction<CopyIntent>(
-            onInvoke: onCopyIntent,
-          ),
-          PasteIntent: CallbackAction<PasteIntent>(
-            onInvoke: onPasteIntent,
-          ),
-        },
-        child: CupertinoScrollbar(
-          controller: widget.scrollController,
-          isAlwaysShown: true,
-          child: TerminalView(
-            scrollController: widget.scrollController,
-            terminal: widget.terminal,
-            focusNode: widget.focusNode,
-            opacity: 0.85,
-            style: TerminalStyle(
-              fontSize: fontSize,
-              fontFamily: const ['Cascadia Mono'],
+        actions: shortcutsToActions(shortcuts, widget.terminal),
+        child: GestureDetector(
+          onLongPress: () {
+            print('onLongPress');
+          },
+          // onDoubleTapDown: (details) {
+          onDoubleTap: () {
+            print('onDoubleTap \$details');
+          },
+          //   print('onDoubleTapDown \$details');
+          // },
+          // onTertiaryTapDown: (details) {
+          //   print('onTertiaryTapDown $details');
+          // },
+          onSecondaryTapDown: (details) async {
+            showMacosContextMenu(
+              context: context,
+              globalPosition: details.globalPosition,
+              children: await createContextMenuItems(context, widget.terminal),
+            );
+          },
+          child: CupertinoScrollbar(
+            controller: widget.scrollController,
+            isAlwaysShown: true,
+            child: TerminalView(
+              scrollController: widget.scrollController,
+              terminal: widget.terminal,
+              focusNode: widget.focusNode,
+              opacity: 0.85,
+              style: TerminalStyle(
+                fontSize: fontSize,
+                fontFamily: const ['Cascadia Mono'],
+              ),
             ),
           ),
         ),
@@ -346,23 +441,15 @@ class _TerminalTabState extends State<TerminalTab> {
     setState(() => fontSize = newFontSize);
   }
 
-  void onFontSizeIncreaseIntent(FontSizeIncreaseIntent intent) {
+  void onZoomIn() {
     updateFontSize(1);
   }
 
-  void onFontSizeDecreaseIntent(FontSizeDecreaseIntent intent) {
+  void onZoomOut() {
     updateFontSize(-1);
   }
 
-  void onCopyIntent(CopyIntent intent) {
-    doCopy(intent.terminal);
-  }
-
-  void onPasteIntent(PasteIntent intent) async {
-    await doPaste(intent.terminal);
-  }
-
-  static void doCopy(TerminalUiInteraction terminal) {
+  void onCopy(TerminalUiInteraction terminal) {
     final text = terminal.selectedText ?? '';
     Clipboard.setData(ClipboardData(text: text));
     terminal.clearSelection();
@@ -370,7 +457,7 @@ class _TerminalTabState extends State<TerminalTab> {
     terminal.refresh();
   }
 
-  static Future doPaste(TerminalUiInteraction terminal) async {
+  void onPaste(TerminalUiInteraction terminal) async {
     final clipboardData = await Clipboard.getData('text/plain');
 
     final clipboardHasData = clipboardData?.text?.isNotEmpty == true;
@@ -379,6 +466,18 @@ class _TerminalTabState extends State<TerminalTab> {
       terminal.paste(clipboardData!.text!);
       //terminal.debug.onMsg('paste ┤${clipboardData.text}├');
     }
+  }
+
+  void onSelectAll(TerminalUiInteraction terminal) {
+    print('Select All is currently not implemented.');
+  }
+
+  void onClear(TerminalUiInteraction terminal) {
+    print('Clear is currently not implemented.');
+  }
+
+  void onKill(TerminalUiInteraction terminal) {
+    terminal.terminateBackend();
   }
 }
 

@@ -18,7 +18,7 @@ class PtyTerminalBackend implements TerminalBackend {
   Stream<String> get out => pty.out;
 
   @override
-  void resize(int width, int height) {
+  void resize(int width, int height, int pixelWidth, int pixelHeight) {
     pty.resize(width, height);
   }
 
