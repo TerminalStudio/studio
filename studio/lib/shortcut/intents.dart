@@ -14,3 +14,5 @@ class SelectAllIntent extends Intent {}
 class ClearIntent extends Intent {}
 
 class KillIntent extends Intent {}
+
+class SearchIntent extends Intent {}
