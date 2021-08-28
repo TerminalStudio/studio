@@ -139,7 +139,10 @@ class _MyHomePageState extends State<MyHomePage> {
       await terminal.start();
     }
 
-    final focusNode = FocusNode();
+    final focusNode = FocusNode(
+      skipTraversal:
+          true, //this is needed so that Tabs in the Terminal don't lead to a focus jump
+    );
 
     SchedulerBinding.instance!.addPostFrameCallback((timeStamp) {
       focusNode.requestFocus();
