@@ -485,6 +485,7 @@ class _TerminalTabState extends State<TerminalTab> {
           terminal: widget.terminal,
           focusNode: focusNodeUserSearchInput,
           searchTextController: searchTextController,
+          closeRequestHandler: () => disableSearch(),
         ),
         visible: _isUserSearchActive,
       ),

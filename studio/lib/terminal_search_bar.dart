@@ -1,6 +1,9 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:xterm/terminal/terminal_ui_interaction.dart';
 import 'package:xterm/terminal/terminal_search.dart';
+
+typedef SearchCloseRequestHandler = void Function();
 
 class TerminalSearchBar extends StatefulWidget {
   const TerminalSearchBar({
@@ -8,6 +11,7 @@ class TerminalSearchBar extends StatefulWidget {
     required this.terminal,
     required this.searchTextController,
     required this.focusNode,
+    required this.closeRequestHandler,
     this.itemSize = 20,
   }) : super(key: key);
 
@@ -15,6 +19,7 @@ class TerminalSearchBar extends StatefulWidget {
   final int itemSize;
   final TextEditingController searchTextController;
   final FocusNode focusNode;
+  final SearchCloseRequestHandler closeRequestHandler;
 
   @override
   _TerminalSearchBarState createState() {
@@ -23,7 +28,7 @@ class TerminalSearchBar extends StatefulWidget {
 }
 
 class _TerminalSearchBarState extends State<TerminalSearchBar> {
-  int _currentSearchHit = 0;
+  int? _currentSearchHit = 0;
   int _numberOfSearchHits = 0;
   TerminalSearchOptions _options = TerminalSearchOptions();
   String _searchText = '';
@@ -95,9 +100,9 @@ class _TerminalSearchBarState extends State<TerminalSearchBar> {
     );
     const suffixPadding = EdgeInsets.fromLTRB(0, 0, 5, 0);
 
-    final isUpEnabled = _currentSearchHit > 1;
-    final isDownEnabled = _currentSearchHit < _numberOfSearchHits;
-    final isClearEnabled = widget.searchTextController.text != '';
+    final isUpEnabled = _currentSearchHit != null && _currentSearchHit! > 1;
+    final isDownEnabled =
+        _currentSearchHit != null && _currentSearchHit! < _numberOfSearchHits;
 
     return Column(
       children: [
@@ -111,24 +116,29 @@ class _TerminalSearchBarState extends State<TerminalSearchBar> {
                   placeholder: "Search",
                   placeholderStyle: TextStyle(color: resolvedPlaceholderColor),
                   style: TextStyle(color: textColor),
-                  prefix: IconTheme(
-                    data: iconThemeData,
-                    child: const Icon(CupertinoIcons.search),
+                  prefix: Padding(
+                    padding: const EdgeInsets.only(left: 5),
+                    child: IconTheme(
+                      data: iconThemeData,
+                      child: const Icon(CupertinoIcons.search),
+                    ),
                   ),
                   suffix: Row(
                     children: [
-                      Text("$_currentSearchHit/$_numberOfSearchHits"),
+                      Text("${_currentSearchHit ?? 0}/$_numberOfSearchHits"),
                       _TerminalSearchBarSuffixIcon(
                         padding: suffixPadding,
                         enabled: isUpEnabled,
                         active: isUpEnabled,
                         onPressed: () {
-                          widget.terminal.currentSearchHit =
-                              widget.terminal.currentSearchHit - 1;
-
+                          if (widget.terminal.currentSearchHit != null) {
+                            widget.terminal.currentSearchHit =
+                                widget.terminal.currentSearchHit! - 1;
+                          }
                           widget.focusNode.requestFocus();
                         },
                         icon: CupertinoIcons.arrow_up,
+                        tooltip: 'Previous search hit',
                         themeActive: iconThemeDataSuffixActive,
                         themeInactive: iconThemeDataSuffixInactive,
                       ),
@@ -137,12 +147,15 @@ class _TerminalSearchBarState extends State<TerminalSearchBar> {
                         enabled: isDownEnabled,
                         active: isDownEnabled,
                         onPressed: () {
-                          widget.terminal.currentSearchHit =
-                              widget.terminal.currentSearchHit + 1;
+                          if (widget.terminal.currentSearchHit != null) {
+                            widget.terminal.currentSearchHit =
+                                widget.terminal.currentSearchHit! + 1;
+                          }
 
                           widget.focusNode.requestFocus();
                         },
                         icon: CupertinoIcons.arrow_down,
+                        tooltip: 'Next search hit',
                         themeActive: iconThemeDataSuffixActive,
                         themeInactive: iconThemeDataSuffixInactive,
                       ),
@@ -158,6 +171,7 @@ class _TerminalSearchBarState extends State<TerminalSearchBar> {
                           widget.focusNode.requestFocus();
                         },
                         icon: CupertinoIcons.textformat_size,
+                        tooltip: 'Case sensitivity',
                         themeActive: iconThemeDataSuffixActive,
                         themeInactive: iconThemeDataSuffixInactive,
                       ),
@@ -173,18 +187,17 @@ class _TerminalSearchBarState extends State<TerminalSearchBar> {
                           widget.focusNode.requestFocus();
                         },
                         icon: CupertinoIcons.textbox,
+                        tooltip: 'Whole word',
                         themeActive: iconThemeDataSuffixActive,
                         themeInactive: iconThemeDataSuffixInactive,
                       ),
                       _TerminalSearchBarSuffixIcon(
                         padding: suffixPadding,
-                        enabled: isClearEnabled,
-                        active: isClearEnabled,
-                        onPressed: () {
-                          widget.searchTextController.text = '';
-                          widget.focusNode.requestFocus();
-                        },
+                        enabled: true,
+                        active: true,
+                        onPressed: widget.closeRequestHandler,
                         icon: CupertinoIcons.xmark_circle_fill,
+                        tooltip: 'Close search',
                         themeActive: iconThemeDataSuffixActive,
                         themeInactive: iconThemeDataSuffixInactive,
                       ),
@@ -217,6 +230,7 @@ class _TerminalSearchBarSuffixIcon extends StatelessWidget {
     required this.themeActive,
     required this.themeInactive,
     required this.icon,
+    required this.tooltip,
   }) : super(key: key);
 
   final EdgeInsetsGeometry padding;
@@ -226,6 +240,7 @@ class _TerminalSearchBarSuffixIcon extends StatelessWidget {
   final IconThemeData themeActive;
   final IconThemeData themeInactive;
   final IconData icon;
+  final String tooltip;
 
   @override
   Widget build(BuildContext context) {
@@ -237,7 +252,11 @@ class _TerminalSearchBarSuffixIcon extends StatelessWidget {
         padding: EdgeInsets.zero,
         child: IconTheme(
           data: active ? themeActive : themeInactive,
-          child: Icon(icon),
+          child: Tooltip(
+            message: tooltip,
+            waitDuration: const Duration(milliseconds: 500),
+            child: Icon(icon),
+          ),
         ),
       ),
     );
