@@ -210,7 +210,7 @@ class TerminalTab extends StatefulWidget {
   TerminalTab({
     required this.terminal,
     required this.focusNode,
-  });
+  }) : super(key: UniqueKey());
 
   final TerminalUiInteraction terminal;
   final FocusNode focusNode;
