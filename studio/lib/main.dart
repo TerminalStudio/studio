@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:pty/pty.dart';
 import 'package:studio/shortcut/intents.dart';
 import 'package:studio/shortcut/terminal_shortcut.dart';
+import 'package:studio/terminal_search_bar.dart';
 import 'package:studio/utils/build_mode.dart';
 import 'package:studio/utils/pty_terminal_backend.dart';
 import 'package:tabs/tabs.dart';
@@ -138,7 +139,10 @@ class _MyHomePageState extends State<MyHomePage> {
       await terminal.start();
     }
 
-    final focusNode = FocusNode();
+    final focusNode = FocusNode(
+      skipTraversal:
+          true, //this is needed so that Tabs in the Terminal don't lead to a focus jump
+    );
 
     SchedulerBinding.instance!.addPostFrameCallback((timeStamp) {
       focusNode.requestFocus();
@@ -206,7 +210,7 @@ class TerminalTab extends StatefulWidget {
   TerminalTab({
     required this.terminal,
     required this.focusNode,
-  });
+  }) : super(key: UniqueKey());
 
   final TerminalUiInteraction terminal;
   final FocusNode focusNode;
@@ -218,6 +222,47 @@ class TerminalTab extends StatefulWidget {
 
 class _TerminalTabState extends State<TerminalTab> {
   var fontSize = 14.0;
+
+  final searchTextController = TextEditingController();
+  late final FocusNode focusNodeUserSearchInput;
+  var _isUserSearchActive = false;
+
+  void _onTerminalChanges() {
+    if (widget.terminal.isUserSearchActive != _isUserSearchActive) {
+      setState(() {
+        _isUserSearchActive = widget.terminal.isUserSearchActive;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    searchTextController.text = widget.terminal.userSearchPattern ?? "";
+    searchTextController.addListener(() {
+      if (searchTextController.text == '') {
+        widget.terminal.userSearchPattern = null;
+      } else {
+        widget.terminal.userSearchPattern = searchTextController.text;
+      }
+    });
+    focusNodeUserSearchInput = FocusNode(
+      onKeyEvent: (node, event) {
+        if (event.logicalKey == LogicalKeyboardKey.escape) {
+          disableSearch();
+          return KeyEventResult.handled;
+        }
+        return KeyEventResult.ignored;
+      },
+    );
+    widget.terminal.addListener(_onTerminalChanges);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    widget.terminal.removeListener(_onTerminalChanges);
+    super.dispose();
+  }
 
   List<TerminalShortcut> getShortcuts() => [
         TerminalShortcut(
@@ -282,6 +327,13 @@ class _TerminalTabState extends State<TerminalTab> {
               _withModifier(LogicalKeyboardKey.keyE, needsExtraModifier: true),
             ],
             intent: KillIntent()),
+        TerminalShortcut(
+            name: 'Search',
+            onExecute: (terminal) async => onSearch(),
+            keyCombinations: [
+              _withModifier(LogicalKeyboardKey.keyF, needsExtraModifier: false),
+            ],
+            intent: SearchIntent()),
       ];
 
   String _shortcutKeysToString(Iterable<LogicalKeyboardKey>? triggers) {
@@ -385,47 +437,59 @@ class _TerminalTabState extends State<TerminalTab> {
   @override
   Widget build(BuildContext context) {
     final shortcuts = getShortcuts();
-    return Shortcuts(
-      shortcuts: shortcutsToActivatorMap(shortcuts),
-      child: Actions(
-        actions: shortcutsToActions(shortcuts, widget.terminal),
-        child: GestureDetector(
-          onLongPress: () {
-            print('onLongPress');
-          },
-          // onDoubleTapDown: (details) {
-          onDoubleTap: () {
-            print('onDoubleTap \$details');
-          },
-          //   print('onDoubleTapDown \$details');
-          // },
-          // onTertiaryTapDown: (details) {
-          //   print('onTertiaryTapDown $details');
-          // },
-          onSecondaryTapDown: (details) async {
-            showMacosContextMenu(
-              context: context,
-              globalPosition: details.globalPosition,
-              children: await createContextMenuItems(context, widget.terminal),
-            );
-          },
-          child: CupertinoScrollbar(
-            controller: widget.scrollController,
-            isAlwaysShown: true,
-            child: TerminalView(
-              scrollController: widget.scrollController,
-              terminal: widget.terminal,
-              focusNode: widget.focusNode,
-              opacity: 0.85,
-              style: TerminalStyle(
-                fontSize: fontSize,
-                fontFamily: const ['Cascadia Mono'],
+    return Stack(children: [
+      Shortcuts(
+        shortcuts: shortcutsToActivatorMap(shortcuts),
+        child: Actions(
+          actions: shortcutsToActions(shortcuts, widget.terminal),
+          child: GestureDetector(
+            onLongPress: () {
+              print('onLongPress');
+            },
+            // onDoubleTapDown: (details) {
+            onDoubleTap: () {
+              print('onDoubleTap \$details');
+            },
+            //   print('onDoubleTapDown \$details');
+            // },
+            // onTertiaryTapDown: (details) {
+            //   print('onTertiaryTapDown $details');
+            // },
+            onSecondaryTapDown: (details) async {
+              showMacosContextMenu(
+                context: context,
+                globalPosition: details.globalPosition,
+                children:
+                    await createContextMenuItems(context, widget.terminal),
+              );
+            },
+            child: CupertinoScrollbar(
+              controller: widget.scrollController,
+              isAlwaysShown: true,
+              child: TerminalView(
+                scrollController: widget.scrollController,
+                terminal: widget.terminal,
+                focusNode: widget.focusNode,
+                opacity: 0.85,
+                style: TerminalStyle(
+                  fontSize: fontSize,
+                  fontFamily: const ['Cascadia Mono'],
+                ),
               ),
             ),
           ),
         ),
       ),
-    );
+      Visibility(
+        child: TerminalSearchBar(
+          terminal: widget.terminal,
+          focusNode: focusNodeUserSearchInput,
+          searchTextController: searchTextController,
+          closeRequestHandler: () => disableSearch(),
+        ),
+        visible: _isUserSearchActive,
+      ),
+    ]);
   }
 
   void updateFontSize(int delta) {
@@ -478,6 +542,30 @@ class _TerminalTabState extends State<TerminalTab> {
 
   void onKill(TerminalUiInteraction terminal) {
     terminal.terminateBackend();
+  }
+
+  void disableSearch() {
+    if (!widget.terminal.isUserSearchActive) {
+      return;
+    }
+    widget.terminal.isUserSearchActive = false;
+    widget.focusNode.requestFocus();
+  }
+
+  void onSearch() {
+    widget.terminal.isUserSearchActive = true;
+    // sets the initial search to the currently selected text if
+    // there is something selected and if there is no search term already
+    if (widget.terminal.selectedText != null &&
+        widget.terminal.userSearchPattern == null) {
+      searchTextController.text = widget.terminal.selectedText!;
+      widget.terminal.userSearchPattern = searchTextController.text;
+    } else if (widget.terminal.userSearchPattern != null) {
+      searchTextController.text = widget.terminal.userSearchPattern!;
+    } else {
+      searchTextController.text = '';
+    }
+    focusNodeUserSearchInput.requestFocus();
   }
 }
 
