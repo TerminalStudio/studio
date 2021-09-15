@@ -6,11 +6,3 @@
 	path = pty
 	url = https://github.com/TerminalStudio/pty.git
 	branch = master
-[submodule "tabs"]
-	path = tabs
-	url = https://github.com/TerminalStudio/tabs.git
-	branch = 5cb3278
-[submodule "context_menu_macos"]
-	path = context_menu_macos
-	url = https://github.com/TerminalStudio/context_menu_macos.git
-	branch = main
