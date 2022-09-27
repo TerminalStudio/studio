@@ -36,7 +36,9 @@ dependencies:
 
   dartssh2: ^2.7.2+3
 
-  xterm: ^3.2.7
+  # xterm: ^3.2.7
+  xterm:
+    git: https://github.com/TerminalStudio/xterm.dart.git
 
   flutter_riverpod: ^2.0.0-dev.9
 
@@ -47,6 +49,12 @@ dependencies:
   flutter_acrylic: ^1.0.0+2
 
   context_menus: ^1.0.2
+
+  flex_tabs: ^0.0.10-pre
+
+  file: ^6.1.4
+
+  path: ^1.8.2
 
 dev_dependencies:
   flutter_test:

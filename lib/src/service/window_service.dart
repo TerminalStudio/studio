@@ -5,8 +5,8 @@ import 'package:window_manager/window_manager.dart';
 
 class WindowService {
   Future<void> createWindow() async {
-    final executable = Platform.resolvedExecutable;
-    await Process.start(executable, [], mode: ProcessStartMode.detached);
+    // final executable = Platform.resolvedExecutable;
+    // await Process.start(executable, [], mode: ProcessStartMode.detached);
   }
 
   Future<void> setTitle(String title) async {
