@@ -26,7 +26,8 @@ class TerminalTab extends TabItem {
   var terminalTitle = '';
 
   late final pty = Pty.start(
-    'zsh',
+    shell.first,
+    arguments: shell.sublist(1),
     columns: terminal.viewWidth,
     rows: terminal.viewHeight,
   );
@@ -76,21 +77,22 @@ class TerminalTab extends TabItem {
     return node as TabsDocument;
   }
 
-  static String get shell {
+  List<String> get shell {
     if (Platform.isMacOS) {
       final user = Platform.environment['USER'];
+
       if (user != null) {
-        return 'login -fp $user';
+        return ['login', '-fp', user];
       } else {
-        return 'zsh';
+        return ['zsh'];
       }
     }
 
     if (Platform.isWindows) {
-      return 'cmd.exe';
+      return ['cmd.exe'];
     }
 
-    return Platform.environment['SHELL'] ?? 'sh';
+    return [Platform.environment['SHELL.first'] ?? 'sh'];
   }
 }
 
