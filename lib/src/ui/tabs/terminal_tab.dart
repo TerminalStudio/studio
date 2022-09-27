@@ -1,7 +1,10 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:context_menus/context_menus.dart';
 import 'package:flex_tabs/flex_tabs.dart';
+import 'package:flex_tabs/src/model/container.dart';
+import 'package:flex_tabs/src/model/node.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show Colors;
 import 'package:flutter/scheduler.dart';
@@ -35,7 +38,11 @@ class TerminalTab extends TabItem {
         .listen(terminal.write);
 
     pty.exitCode.then((code) {
-      detach();
+      if (document.root == null || document.root!.children.length == 1) {
+        exit(0);
+      } else {
+        detach();
+      }
     });
 
     terminal.onTitleChange = (title) {
@@ -59,6 +66,31 @@ class TerminalTab extends TabItem {
     title.value = Text(
       '$terminalTitle — ${terminal.viewWidth}x${terminal.viewHeight}',
     );
+  }
+
+  TabsDocument get document {
+    TabsNode node = this;
+    while (node.parent != null) {
+      node = node.parent!;
+    }
+    return node as TabsDocument;
+  }
+
+  static String get shell {
+    if (Platform.isMacOS) {
+      final user = Platform.environment['USER'];
+      if (user != null) {
+        return 'login -fp $user';
+      } else {
+        return 'zsh';
+      }
+    }
+
+    if (Platform.isWindows) {
+      return 'cmd.exe';
+    }
+
+    return Platform.environment['SHELL'] ?? 'sh';
   }
 }
 

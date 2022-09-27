@@ -1,11 +1,12 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:context_menus/context_menus.dart';
-import 'package:dartssh2/dartssh2.dart';
 import 'package:flex_tabs/flex_tabs.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:studio/src/ui/context_menu.dart';
-import 'package:studio/src/ui/tabs/terminal_menu.dart';
 import 'package:studio/src/ui/platform_menu.dart';
 import 'package:studio/src/ui/shortcut/global_actions.dart';
 import 'package:studio/src/ui/shortcut/global_shortcuts.dart';
@@ -71,15 +72,23 @@ class _HomeState extends State<Home> {
 
   @override
   void initState() {
-    final root = Tabs(
-      children: [
-        TerminalTab(),
-      ],
-    );
+    final root = Tabs();
+
+    var terminalTab = TerminalTab();
+
+    root.add(terminalTab);
 
     document.setRoot(root);
 
+    document.addListener(_onDocumentChanged);
+
     super.initState();
+  }
+
+  void _onDocumentChanged() {
+    if (document.root == null || document.root!.children.isEmpty) {
+      exit(0);
+    }
   }
 
   @override
