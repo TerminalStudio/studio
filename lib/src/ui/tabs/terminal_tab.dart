@@ -113,12 +113,14 @@ class _TerminalTabViewState extends ConsumerState<TerminalTabView> {
       key: ValueKey(widget.tab),
       backgroundColor: Colors.transparent,
       child: SafeArea(
-        child: TerminalView(
-          widget.tab.terminal,
-          controller: widget.tab.terminalController,
-          onSecondaryTapDown: (_, __) => showMenu(),
-          backgroundOpacity: 0,
-          autofocus: true,
+        child: ClipRect(
+          child: TerminalView(
+            widget.tab.terminal,
+            controller: widget.tab.terminalController,
+            onSecondaryTapDown: (_, __) => showMenu(),
+            backgroundOpacity: 0,
+            autofocus: true,
+          ),
         ),
       ),
     );
