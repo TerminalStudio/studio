@@ -1,6 +1,6 @@
 import 'package:flex_tabs/flex_tabs.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' show FlutterLogo;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:macos_ui/macos_ui.dart';
 import 'package:studio/src/core/model/ssh_host_record.dart';
@@ -24,15 +24,13 @@ class AddHostTabView extends ConsumerStatefulWidget {
 class _AddHostTabViewState extends ConsumerState<AddHostTabView> {
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
+    return Container(
+      constraints: const BoxConstraints.expand(),
+      color: const Color.fromARGB(255, 245, 245, 245),
+      alignment: Alignment.center,
       child: Container(
-        constraints: const BoxConstraints.expand(),
-        color: const Color.fromARGB(255, 251, 251, 251),
-        alignment: Alignment.center,
-        child: Container(
-          constraints: const BoxConstraints.tightFor(width: 550),
-          child: const AddHostForm(),
-        ),
+        constraints: const BoxConstraints.tightFor(width: 550),
+        child: const AddHostForm(),
       ),
     );
   }

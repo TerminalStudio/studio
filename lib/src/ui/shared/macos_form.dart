@@ -5,16 +5,17 @@ import 'package:macos_ui/macos_ui.dart';
 class MacosFormRow extends StatelessWidget {
   static const labelWidth = 100.0;
 
-  static const spaceBetween = 8.0;
-
   final Widget? label;
 
   final Widget child;
+
+  final double spaceBetween;
 
   const MacosFormRow({
     super.key,
     this.label,
     required this.child,
+    this.spaceBetween = 8.0,
   });
 
   @override
@@ -30,7 +31,7 @@ class MacosFormRow extends StatelessWidget {
               child: label,
             ),
           if (label != null)
-            const SizedBox(
+            SizedBox(
               width: spaceBetween,
             ),
           Expanded(
@@ -66,12 +67,15 @@ class MacosTextFormRow extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return MacosFormRow(
       label: label,
+      spaceBetween: 6.0,
       child: MacosTextField(
-        padding: const EdgeInsets.symmetric(vertical: 4),
         placeholder: placeholder,
         obscureText: obscureText,
         decoration: kDefaultRoundedBorderDecoration.copyWith(
-          borderRadius: BorderRadius.circular(1),
+          borderRadius: BorderRadius.circular(2),
+        ),
+        focusedDecoration: kDefaultFocusedBorderDecoration.copyWith(
+          borderRadius: BorderRadius.circular(5),
         ),
         onChanged: onChanged,
         controller: controller,
