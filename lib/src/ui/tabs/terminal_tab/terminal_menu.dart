@@ -1,18 +1,18 @@
 import 'package:context_menus/context_menus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:studio/src/plugins/file_manager_plugin.dart';
+import 'package:studio/src/ui/tabs/plugin_tab/plugin_tab.dart';
+import 'package:studio/src/ui/tabs/terminal_tab/terminal_tab.dart';
 import 'package:xterm/xterm.dart';
 
 class TerminalContextMenu extends StatefulWidget {
   const TerminalContextMenu({
     super.key,
-    required this.terminal,
-    required this.terminalController,
+    required this.tab,
   });
 
-  final Terminal terminal;
-
-  final TerminalController terminalController;
+  final TerminalTab tab;
 
   @override
   TerminalContextMenuState createState() => TerminalContextMenuState();
@@ -20,23 +20,29 @@ class TerminalContextMenu extends StatefulWidget {
 
 class TerminalContextMenuState extends State<TerminalContextMenu>
     with ContextMenuStateMixin {
+  TerminalTab get tab => widget.tab;
+
+  Terminal get terminal => tab.terminal;
+
+  TerminalController get terminalController => tab.terminalController;
+
   @override
   void initState() {
-    widget.terminalController.addListener(_onSelectionChanged);
+    terminalController.addListener(_onSelectionChanged);
     super.initState();
   }
 
   @override
   void dispose() {
-    widget.terminalController.removeListener(_onSelectionChanged);
+    terminalController.removeListener(_onSelectionChanged);
     super.dispose();
   }
 
   @override
   void didUpdateWidget(covariant TerminalContextMenu oldWidget) {
-    if (oldWidget.terminalController != widget.terminalController) {
-      oldWidget.terminalController.removeListener(_onSelectionChanged);
-      widget.terminalController.addListener(_onSelectionChanged);
+    if (oldWidget.tab.terminalController != widget.tab.terminalController) {
+      oldWidget.tab.terminalController.removeListener(_onSelectionChanged);
+      widget.tab.terminalController.addListener(_onSelectionChanged);
     }
     super.didUpdateWidget(oldWidget);
   }
@@ -47,7 +53,6 @@ class TerminalContextMenuState extends State<TerminalContextMenu>
 
   @override
   Widget build(BuildContext context) {
-    final selection = widget.terminalController.selection;
     return cardBuilder(
       context,
       [
@@ -57,7 +62,7 @@ class TerminalContextMenuState extends State<TerminalContextMenu>
             "Copy",
             icon: const Icon(Icons.copy),
             shortcutLabel: 'Ctrl+C',
-            onPressed: selection != null
+            onPressed: terminalController.selection != null
                 ? () => handlePressed(context, _handleCopy)
                 : null,
           ),
@@ -87,7 +92,7 @@ class TerminalContextMenuState extends State<TerminalContextMenu>
             "File Manager",
             icon: const Icon(Icons.folder),
             shortcutLabel: 'Ctrl+Shift+F',
-            onPressed: () {},
+            onPressed: () => handlePressed(context, _handleOpenFileManager),
           ),
         ),
       ],
@@ -95,13 +100,13 @@ class TerminalContextMenuState extends State<TerminalContextMenu>
   }
 
   Future<void> _handleCopy() async {
-    final selection = widget.terminalController.selection;
+    final selection = terminalController.selection;
 
     if (selection == null) {
       return;
     }
 
-    final text = widget.terminal.buffer.getText(selection);
+    final text = terminal.buffer.getText(selection);
 
     await Clipboard.setData(ClipboardData(text: text));
   }
@@ -119,16 +124,28 @@ class TerminalContextMenuState extends State<TerminalContextMenu>
       return;
     }
 
-    widget.terminal.paste(text);
+    terminal.paste(text);
   }
 
   Future<void> _handleSelectAll() async {
-    final terminal = widget.terminal;
-    widget.terminalController.setSelection(
+    terminalController.setSelection(
       BufferRangeLine(
         CellOffset(0, terminal.buffer.height - terminal.viewHeight),
         CellOffset(terminal.viewWidth, terminal.buffer.height - 1),
       ),
     );
+  }
+
+  Future<void> _handleOpenFileManager() async {
+    final parent = tab.parent;
+    if (parent == null) {
+      return;
+    }
+
+    final pluginTab = PluginTab(tab.host, FileManagerPlugin());
+
+    parent.insert(parent.indexOf(tab) + 1, pluginTab);
+
+    parent.activate(pluginTab);
   }
 }

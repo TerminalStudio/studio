@@ -5,19 +5,23 @@ import 'package:context_menus/context_menus.dart';
 import 'package:flex_tabs/flex_tabs.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:macos_ui/macos_ui.dart';
+import 'package:studio/src/core/hosts/local_host.dart';
+import 'package:studio/src/core/state/tabs.dart';
 import 'package:studio/src/ui/context_menu.dart';
 import 'package:studio/src/ui/platform_menu.dart';
 import 'package:studio/src/ui/shortcut/global_actions.dart';
 import 'package:studio/src/ui/shortcut/global_shortcuts.dart';
-import 'package:studio/src/ui/tabs/terminal_tab.dart';
+import 'package:studio/src/ui/tabs/terminal_tab/terminal_tab.dart';
 import 'package:studio/src/util/provider_logger.dart';
 import 'package:window_manager/window_manager.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await initWindow();
+  initWindow();
 
   runApp(
     const ProviderScope(
@@ -42,7 +46,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoApp(
+    return MacosApp(
       title: 'TerminalStudio',
       debugShowCheckedModeBanner: false,
       home: ContextMenuOverlay(
@@ -58,34 +62,39 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class Home extends StatefulWidget {
+class Home extends ConsumerStatefulWidget {
   const Home({super.key});
 
   @override
-  State<Home> createState() => _HomeState();
+  ConsumerState<Home> createState() => _HomeState();
 }
 
-class _HomeState extends State<Home> {
-  final document = TabsDocument();
-
+class _HomeState extends ConsumerState<Home> {
   final tabsTheme = const TabsViewThemeData();
 
   @override
   void initState() {
+    SchedulerBinding.instance.addPostFrameCallback((_) async {
+      await initTabs();
+    });
+    super.initState();
+  }
+
+  Future<void> initTabs() async {
     final root = Tabs();
 
-    var terminalTab = TerminalTab();
+    root.add(TerminalTab(LocalHost()));
 
-    root.add(terminalTab);
+    final document = ref.watch(tabsProvider);
 
     document.setRoot(root);
 
     document.addListener(_onDocumentChanged);
-
-    super.initState();
   }
 
   void _onDocumentChanged() {
+    final document = ref.watch(tabsProvider);
+
     if (document.root == null || document.root!.children.isEmpty) {
       exit(0);
     }
@@ -99,7 +108,7 @@ class _HomeState extends State<Home> {
           _buildTitlebar(context),
         Expanded(
           child: TabsView(
-            document,
+            ref.watch(tabsProvider),
             theme: tabsTheme,
             actionBuilder: buildTabActions,
           ),
@@ -121,14 +130,14 @@ class _HomeState extends State<Home> {
         icon: CupertinoIcons.chevron_down,
         onPressed: () {
           context.contextMenuOverlay.show(
-            const DropdownContextMenu(),
+            DropdownContextMenu(tabs),
           );
         },
       ),
       TabsViewAction(
         icon: CupertinoIcons.add,
         onPressed: () {
-          final tab = TerminalTab();
+          final tab = TerminalTab(LocalHost());
           tabs.add(tab);
           tab.activate();
         },

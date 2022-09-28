@@ -4,7 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter_pty/flutter_pty.dart';
 import 'package:studio/src/core/fs.dart';
 import 'package:studio/src/core/host.dart';
-import 'package:studio/src/hosts/local_fs.dart';
+import 'package:studio/src/core/hosts/local_fs.dart';
 
 class LocalHost implements Host {
   @override
@@ -16,7 +16,7 @@ class LocalHost implements Host {
   }) async {
     final result =
         await Process.run(executable, args, environment: environment);
-    return _LocalExecutionResult(result);
+    return LocalExecutionResult(result);
   }
 
   @override
@@ -25,7 +25,7 @@ class LocalHost implements Host {
   }
 
   @override
-  Future<ExecutionSession> shell({
+  Future<LocalExecutionSession> shell({
     int width = 80,
     int height = 25,
     Map<String, String>? environment,
@@ -38,14 +38,14 @@ class LocalHost implements Host {
       rows: height,
       columns: width,
     );
-    return _LocalExecutionSession(pty);
+    return LocalExecutionSession(pty);
   }
 }
 
-class _LocalExecutionResult implements ExecutionResult {
+class LocalExecutionResult implements ExecutionResult {
   final ProcessResult _result;
 
-  _LocalExecutionResult(this._result);
+  LocalExecutionResult(this._result);
 
   @override
   int get exitCode => _result.exitCode;
@@ -57,10 +57,10 @@ class _LocalExecutionResult implements ExecutionResult {
   String get stdout => _result.stdout;
 }
 
-class _LocalExecutionSession implements ExecutionSession {
+class LocalExecutionSession implements ExecutionSession {
   final Pty _pty;
 
-  _LocalExecutionSession(this._pty);
+  LocalExecutionSession(this._pty);
 
   @override
   Future<int> get exitCode => _pty.exitCode;
@@ -75,7 +75,7 @@ class _LocalExecutionSession implements ExecutionSession {
 
   @override
   Future<void> resize(int width, int height) async {
-    _pty.resize(width, height);
+    _pty.resize(height, width);
   }
 
   @override

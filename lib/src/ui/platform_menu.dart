@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:studio/src/ui/tabs/devtools_tab.dart';
+import 'package:studio/src/util/tabs_extension.dart';
 
-class GlobalPlatformMenu extends StatefulWidget {
+class GlobalPlatformMenu extends ConsumerStatefulWidget {
   const GlobalPlatformMenu({super.key, required this.child});
 
   final Widget child;
 
   @override
-  State<GlobalPlatformMenu> createState() => _GlobalPlatformMenuState();
+  ConsumerState<GlobalPlatformMenu> createState() => _GlobalPlatformMenuState();
 }
 
-class _GlobalPlatformMenuState extends State<GlobalPlatformMenu> {
+class _GlobalPlatformMenuState extends ConsumerState<GlobalPlatformMenu> {
   @override
   Widget build(BuildContext context) {
     return PlatformMenuBar(
@@ -129,8 +132,18 @@ class _GlobalPlatformMenuState extends State<GlobalPlatformMenu> {
                   type: PlatformProvidedMenuItemType.quit),
           ],
         ),
+        PlatformMenu(
+          label: 'View',
+          menus: [
+            PlatformMenuItem(
+              label: 'DevTools',
+              shortcut: const SingleActivator(LogicalKeyboardKey.f12),
+              onSelected: () => ref.openTab(DevToolsTab()),
+            ),
+          ],
+        ),
       ],
-      body: widget.child,
+      child: widget.child,
     );
   }
 }

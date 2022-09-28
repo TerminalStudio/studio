@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:studio/src/service/window_service.dart';
+import 'package:studio/src/core/service/window_service.dart';
 import 'package:studio/src/ui/shortcut/intents.dart';
 
 class GlobalActions extends ConsumerWidget {
@@ -15,6 +15,7 @@ class GlobalActions extends ConsumerWidget {
         NewWindowIntent: CallbackAction<NewWindowIntent>(
           onInvoke: (NewWindowIntent intent) async {
             await ref.read(windowServiceProvider).createWindow();
+            return null;
           },
         ),
       },
