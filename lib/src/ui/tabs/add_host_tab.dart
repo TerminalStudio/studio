@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show FlutterLogo;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:macos_ui/macos_ui.dart';
-import 'package:studio/src/core/model/ssh_host_record.dart';
+import 'package:studio/src/core/record/ssh_host_record.dart';
 import 'package:studio/src/core/state/database.dart';
 import 'package:studio/src/ui/shared/macos_form.dart';
 

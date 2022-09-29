@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:studio/src/core/model/ssh_host_record.dart';
-import 'package:studio/src/core/model/ssh_key_record.dart';
+import 'package:studio/src/core/record/ssh_host_record.dart';
+import 'package:studio/src/core/record/ssh_key_record.dart';
 
 final hiveProvider = FutureProvider<HiveInterface>((ref) async {
   await Hive.initFlutter();
