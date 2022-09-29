@@ -90,7 +90,7 @@ class TerminalContextMenuState extends State<TerminalContextMenu>
           context,
           ContextMenuButtonConfig(
             "File Manager",
-            icon: const Icon(Icons.folder),
+            icon: const Icon(Icons.folder_open),
             shortcutLabel: 'Ctrl+Shift+F',
             onPressed: () => handlePressed(context, _handleOpenFileManager),
           ),
