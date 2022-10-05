@@ -62,7 +62,6 @@ class CodeEditorView extends StatelessWidget {
         ),
       ),
     );
-    ;
   }
 }
 
