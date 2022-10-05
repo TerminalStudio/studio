@@ -13,15 +13,18 @@ class MacosTitlebar extends StatefulWidget {
 }
 
 class _MacosTitlebarState extends State<MacosTitlebar> with WindowListener {
-  var maximized = false;
+  var fullScreen = false;
+
   @override
-  void onWindowMaximize() {
-    setState(() => maximized = true);
+  void onWindowEnterFullScreen() {
+    setState(() => fullScreen = true);
+    super.onWindowEnterFullScreen();
   }
 
   @override
-  void onWindowUnmaximize() {
-    setState(() => maximized = false);
+  void onWindowLeaveFullScreen() {
+    setState(() => fullScreen = false);
+    super.onWindowLeaveFullScreen();
   }
 
   @override
@@ -39,7 +42,7 @@ class _MacosTitlebarState extends State<MacosTitlebar> with WindowListener {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: maximized ? 0 : kMacosTitlebarHeight,
+      height: fullScreen ? 0 : kMacosTitlebarHeight,
       color: widget.color,
     );
   }
