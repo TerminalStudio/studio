@@ -1,6 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:window_manager/window_manager.dart';
 
+const kMacosTitlebarHeight = 28.0;
+
 class MacosTitlebar extends StatefulWidget {
   const MacosTitlebar({super.key, required this.color});
 
@@ -37,7 +39,7 @@ class _MacosTitlebarState extends State<MacosTitlebar> with WindowListener {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: maximized ? 28 : 0,
+      height: maximized ? 0 : kMacosTitlebarHeight,
       color: widget.color,
     );
   }
