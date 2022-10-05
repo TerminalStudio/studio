@@ -197,6 +197,8 @@ abstract class FileSystemEntity {
   /// For a non-absolute path, the returned entity is absolute *if possible*,
   /// but still refers to the same file system object.
   Future<FileSystemEntity> get absolute;
+
+  FileStat? get cachedStat => null;
 }
 
 /// Base event class emitted by [FileSystemEntity.watch].
@@ -289,6 +291,10 @@ abstract class File with FileSystemEntity {
     FileMode mode = FileMode.write,
     bool flush = false,
   });
+
+  Future<String> readAsString();
+
+  Future<Uint8List> readAsBytes();
 }
 
 /// The modes in which a [File] can be opened.

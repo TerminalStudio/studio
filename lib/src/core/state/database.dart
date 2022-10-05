@@ -4,7 +4,7 @@ import 'package:studio/src/core/record/ssh_host_record.dart';
 import 'package:studio/src/core/record/ssh_key_record.dart';
 
 final hiveProvider = FutureProvider<HiveInterface>((ref) async {
-  await Hive.initFlutter();
+  await Hive.initFlutter('.TerminalStudio');
   return Hive;
 });
 

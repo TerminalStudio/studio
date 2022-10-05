@@ -20,7 +20,7 @@ class LocalHost implements Host {
   }
 
   @override
-  Future<FileSystem> get fileSystem async {
+  Future<FileSystem> connectFileSystem() async {
     return LocalFileSystem();
   }
 

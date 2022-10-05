@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'package:studio/src/core/fs.dart';
 
 abstract class Host {
-  Future<FileSystem> get fileSystem;
+  Future<FileSystem> connectFileSystem();
 
   Future<ExecutionResult> execute(
     String executable, {

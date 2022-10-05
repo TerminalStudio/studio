@@ -123,6 +123,8 @@ mixin LocalFileSystemEntity {
   Future<bool> exists() async {
     return await delegate.exists();
   }
+
+  late final cachedStat = LocalFileStat(delegate.statSync());
 }
 
 class LocalDirectory extends Directory with LocalFileSystemEntity {
@@ -227,6 +229,16 @@ class LocalFile extends File with LocalFileSystemEntity {
   Future<LocalFile> copy(String newPath) async {
     final newDelegate = await delegate.copy(newPath);
     return LocalFile(fileSystem, newDelegate);
+  }
+
+  @override
+  Future<Uint8List> readAsBytes() {
+    return delegate.readAsBytes();
+  }
+
+  @override
+  Future<String> readAsString() {
+    return delegate.readAsString();
   }
 
   @override

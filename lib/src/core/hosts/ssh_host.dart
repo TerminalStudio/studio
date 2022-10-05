@@ -23,7 +23,7 @@ class SSHHost implements Host {
   }
 
   @override
-  Future<FileSystem> get fileSystem async {
+  Future<FileSystem> connectFileSystem() async {
     final sftp = await client.sftp();
     final currentDirectory = await sftp.absolute('.');
     return SSHFileSystem(sftp, currentDirectory);

@@ -1,13 +1,11 @@
 import 'package:context_menus/context_menus.dart';
-import 'package:dartssh2/dartssh2.dart';
 import 'package:flex_tabs/flex_tabs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:studio/src/core/hosts/local_host.dart';
-import 'package:studio/src/core/hosts/ssh_host.dart';
+import 'package:studio/src/core/hosts/local_spec.dart';
+import 'package:studio/src/core/service/tabs_service.dart';
 import 'package:studio/src/core/state/database.dart';
 import 'package:studio/src/ui/tabs/add_host_tab.dart';
-import 'package:studio/src/ui/tabs/terminal_tab/terminal_tab.dart';
 import 'package:studio/src/util/tabs_extension.dart';
 
 class DropdownContextMenu extends ConsumerStatefulWidget {
@@ -34,9 +32,8 @@ class DropdownContextMenuState extends ConsumerState<DropdownContextMenu>
             'Local',
             icon: const Icon(Icons.computer_outlined),
             onPressed: () => handlePressed(context, () {
-              final tab = TerminalTab(LocalHost());
-              tabs.add(tab);
-              tab.activate();
+              final tabsService = ref.read(tabsServiceProvider);
+              tabsService.openTerminal(LocalHostSpec());
             }),
           ),
         ),
@@ -71,17 +68,8 @@ class DropdownContextMenuState extends ConsumerState<DropdownContextMenu>
             host.name,
             icon: const Icon(Icons.computer_outlined),
             onPressed: () => handlePressed(context, () async {
-              tabs.add(
-                TerminalTab(
-                  SSHHost(
-                    SSHClient(
-                      await SSHSocket.connect(host.host, host.port),
-                      username: host.username!,
-                      onPasswordRequest: () => host.password,
-                    ),
-                  ),
-                ),
-              );
+              final tabsService = ref.read(tabsServiceProvider);
+              tabsService.openTerminal(host, tabs: tabs);
             }),
           ),
         ),

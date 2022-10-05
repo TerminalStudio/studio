@@ -40,7 +40,7 @@ dependencies:
   xterm:
     git: https://github.com/TerminalStudio/xterm.dart.git
 
-  flutter_riverpod: ^2.0.0-dev.9
+  flutter_riverpod: ^2.0.0
 
   flutter_pty: ^0.3.0
 
@@ -50,7 +50,7 @@ dependencies:
 
   context_menus: ^1.0.2
 
-  flex_tabs: ^0.1.0-pre
+  flex_tabs: ^0.1.1-pre
 
   file: ^6.1.4
 
@@ -61,6 +61,12 @@ dependencies:
   uuid: ^3.0.6
 
   macos_ui: ^1.7.5
+
+  syncfusion_flutter_datagrid: ^20.3.47
+
+  code_text_field: ^1.0.2
+  highlight: ^0.7.0
+  flutter_highlight: ^0.7.0
 
 dev_dependencies:
   flutter_test:

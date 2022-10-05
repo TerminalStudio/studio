@@ -8,13 +8,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:macos_ui/macos_ui.dart';
-import 'package:studio/src/core/hosts/local_host.dart';
+import 'package:studio/src/core/hosts/local_spec.dart';
+import 'package:studio/src/core/service/tabs_service.dart';
 import 'package:studio/src/core/state/tabs.dart';
 import 'package:studio/src/ui/context_menu.dart';
 import 'package:studio/src/ui/platform_menu.dart';
 import 'package:studio/src/ui/shortcut/global_actions.dart';
 import 'package:studio/src/ui/shortcut/global_shortcuts.dart';
-import 'package:studio/src/ui/tabs/terminal_tab/terminal_tab.dart';
 import 'package:studio/src/util/provider_logger.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -83,17 +83,23 @@ class _HomeState extends ConsumerState<Home> {
   Future<void> initTabs() async {
     final root = Tabs();
 
-    root.add(TerminalTab(LocalHost()));
+    ref.read(tabsServiceProvider).openTerminal(LocalHostSpec(), tabs: root);
 
     final document = ref.watch(tabsProvider);
 
-    document.setRoot(root);
-
     document.addListener(_onDocumentChanged);
+
+    document.setRoot(root);
   }
 
   void _onDocumentChanged() {
-    final document = ref.watch(tabsProvider);
+    final document = ref.read(tabsProvider);
+
+    document.root?.addListener(_onRootChanged);
+  }
+
+  void _onRootChanged() {
+    final document = ref.read(tabsProvider);
 
     if (document.root == null || document.root!.children.isEmpty) {
       exit(0);
@@ -137,9 +143,9 @@ class _HomeState extends ConsumerState<Home> {
       TabsViewAction(
         icon: CupertinoIcons.add,
         onPressed: () {
-          final tab = TerminalTab(LocalHost());
-          tabs.add(tab);
-          tab.activate();
+          ref
+              .watch(tabsServiceProvider)
+              .openTerminal(LocalHostSpec(), tabs: tabs);
         },
       ),
     ];

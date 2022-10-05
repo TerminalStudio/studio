@@ -1,30 +1,31 @@
 import 'package:context_menus/context_menus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:studio/src/plugins/file_manager_plugin.dart';
-import 'package:studio/src/ui/tabs/plugin_tab/plugin_tab.dart';
-import 'package:studio/src/ui/tabs/terminal_tab/terminal_tab.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:studio/src/core/service/tabs_service.dart';
+import 'package:studio/src/plugins/file_manager/file_manager_plugin.dart';
+import 'package:studio/src/plugins/terminal/terminal_plugin.dart';
 import 'package:xterm/xterm.dart';
 
-class TerminalContextMenu extends StatefulWidget {
+class TerminalContextMenu extends ConsumerStatefulWidget {
   const TerminalContextMenu({
     super.key,
-    required this.tab,
+    required this.plugin,
   });
 
-  final TerminalTab tab;
+  final TerminalPlugin plugin;
 
   @override
   TerminalContextMenuState createState() => TerminalContextMenuState();
 }
 
-class TerminalContextMenuState extends State<TerminalContextMenu>
+class TerminalContextMenuState extends ConsumerState<TerminalContextMenu>
     with ContextMenuStateMixin {
-  TerminalTab get tab => widget.tab;
+  TerminalPlugin get plugin => widget.plugin;
 
-  Terminal get terminal => tab.terminal;
+  Terminal get terminal => plugin.terminal;
 
-  TerminalController get terminalController => tab.terminalController;
+  TerminalController get terminalController => plugin.terminalController;
 
   @override
   void initState() {
@@ -40,9 +41,10 @@ class TerminalContextMenuState extends State<TerminalContextMenu>
 
   @override
   void didUpdateWidget(covariant TerminalContextMenu oldWidget) {
-    if (oldWidget.tab.terminalController != widget.tab.terminalController) {
-      oldWidget.tab.terminalController.removeListener(_onSelectionChanged);
-      widget.tab.terminalController.addListener(_onSelectionChanged);
+    if (oldWidget.plugin.terminalController !=
+        widget.plugin.terminalController) {
+      oldWidget.plugin.terminalController.removeListener(_onSelectionChanged);
+      widget.plugin.terminalController.addListener(_onSelectionChanged);
     }
     super.didUpdateWidget(oldWidget);
   }
@@ -137,15 +139,9 @@ class TerminalContextMenuState extends State<TerminalContextMenu>
   }
 
   Future<void> _handleOpenFileManager() async {
-    final parent = tab.parent;
-    if (parent == null) {
-      return;
-    }
-
-    final pluginTab = PluginTab(tab.host, FileManagerPlugin());
-
-    parent.insert(parent.indexOf(tab) + 1, pluginTab);
-
-    parent.activate(pluginTab);
+    ref.read(tabsServiceProvider).openPlugin(
+          plugin.hostSpec,
+          FileManagerPlugin(),
+        );
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:studio/src/core/service/active_tab_service.dart';
 import 'package:studio/src/ui/tabs/devtools_tab.dart';
 import 'package:studio/src/util/tabs_extension.dart';
 
@@ -107,16 +108,15 @@ class _GlobalPlatformMenuState extends ConsumerState<GlobalPlatformMenu> {
                     if (primaryContext == null) {
                       return;
                     }
-                    print(primaryContext);
                     try {
-                      final action = Actions.maybeFind<Intent>(
+                      Actions.maybeFind<Intent>(
                         primaryContext,
                         intent: const SelectAllTextIntent(
                             SelectionChangedCause.keyboard),
                       );
-                      print('action: $action');
-                    } catch (e) {
+                    } catch (e, st) {
                       print(e);
+                      print(st);
                     }
                     Actions.invoke<Intent>(
                       primaryContext,
@@ -135,6 +135,27 @@ class _GlobalPlatformMenuState extends ConsumerState<GlobalPlatformMenu> {
         PlatformMenu(
           label: 'View',
           menus: [
+            PlatformMenuItemGroup(
+              members: [
+                PlatformMenuItem(
+                  label: 'Close Tab',
+                  shortcut: const SingleActivator(
+                    LogicalKeyboardKey.keyW,
+                    meta: true,
+                  ),
+                  onSelected: () {
+                    return ref
+                        .read(activeTabServiceProvider)
+                        .getActiveTab()
+                        ?.detach();
+                  },
+                ),
+                if (PlatformProvidedMenuItem.hasMenu(
+                    PlatformProvidedMenuItemType.toggleFullScreen))
+                  const PlatformProvidedMenuItem(
+                      type: PlatformProvidedMenuItemType.toggleFullScreen),
+              ],
+            ),
             PlatformMenuItem(
               label: 'DevTools',
               shortcut: const SingleActivator(LogicalKeyboardKey.f12),

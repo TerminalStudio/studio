@@ -110,7 +110,10 @@ class SSHDirectory extends Directory {
   @override
   final String path;
 
-  SSHDirectory(this.fileSystem, this.path);
+  @override
+  final SSHFileStat? cachedStat;
+
+  SSHDirectory(this.fileSystem, this.path, [this.cachedStat]);
 
   SftpClient get client => fileSystem.client;
 
@@ -149,12 +152,13 @@ class SSHDirectory extends Directory {
   }) async* {
     await for (final chunk in client.readdir(path)) {
       for (final file in chunk) {
+        final path = fileSystem.path.join(this.path, file.filename);
         if (file.attr.isDirectory) {
-          yield SSHDirectory(fileSystem, file.filename);
+          yield SSHDirectory(fileSystem, path, SSHFileStat(file.attr));
         } else if (file.attr.isSymbolicLink) {
-          yield SSHLink(fileSystem, file.filename);
+          yield SSHLink(fileSystem, path, SSHFileStat(file.attr));
         } else {
-          yield SSHFile(fileSystem, file.filename);
+          yield SSHFile(fileSystem, path, SSHFileStat(file.attr));
         }
       }
     }
@@ -182,7 +186,10 @@ class SSHFile extends File {
   @override
   final String path;
 
-  SSHFile(this.fileSystem, this.path);
+  @override
+  final SSHFileStat? cachedStat;
+
+  SSHFile(this.fileSystem, this.path, [this.cachedStat]);
 
   SftpClient get client => fileSystem.client;
 
@@ -239,6 +246,20 @@ class SSHFile extends File {
   }
 
   @override
+  Future<Uint8List> readAsBytes() async {
+    final file = await client.open(path);
+    final bytes = await file.readBytes();
+    await file.close();
+    return bytes;
+  }
+
+  @override
+  Future<String> readAsString() async {
+    final bytes = await readAsBytes();
+    return utf8.decode(bytes, allowMalformed: true);
+  }
+
+  @override
   Future<SSHFile> writeAsBytes(
     Uint8List bytes, {
     FileMode mode = FileMode.write,
@@ -283,7 +304,10 @@ class SSHLink extends Link {
   @override
   final String path;
 
-  SSHLink(this.fileSystem, this.path);
+  @override
+  final SSHFileStat? cachedStat;
+
+  SSHLink(this.fileSystem, this.path, [this.cachedStat]);
 
   SftpClient get client => fileSystem.client;
 
