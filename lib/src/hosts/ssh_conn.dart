@@ -1,7 +1,7 @@
 import 'package:dartssh2/dartssh2.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:studio/src/core/conn.dart';
-import 'package:studio/src/core/hosts/ssh_host.dart';
+import 'package:studio/src/hosts/ssh_host.dart';
 import 'package:studio/src/core/record/ssh_host_record.dart';
 
 class SSHConnector extends HostConnector<SSHHost> {

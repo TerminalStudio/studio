@@ -2,7 +2,7 @@ import 'package:context_menus/context_menus.dart';
 import 'package:flex_tabs/flex_tabs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:studio/src/core/hosts/local_spec.dart';
+import 'package:studio/src/hosts/local_spec.dart';
 import 'package:studio/src/core/service/tabs_service.dart';
 import 'package:studio/src/core/state/database.dart';
 import 'package:studio/src/ui/tabs/add_host_tab.dart';

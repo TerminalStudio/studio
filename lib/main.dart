@@ -8,7 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:macos_ui/macos_ui.dart';
-import 'package:studio/src/core/hosts/local_spec.dart';
+import 'package:studio/src/hosts/local_spec.dart';
 import 'package:studio/src/core/service/tabs_service.dart';
 import 'package:studio/src/core/state/tabs.dart';
 import 'package:studio/src/ui/context_menu.dart';

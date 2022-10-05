@@ -1,6 +1,6 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:studio/src/core/conn.dart';
-import 'package:studio/src/core/hosts/ssh_conn.dart';
+import 'package:studio/src/hosts/ssh_conn.dart';
 import 'package:studio/src/util/uuid.dart';
 
 part 'ssh_host_record.g.dart';

@@ -1,5 +1,5 @@
 import 'package:studio/src/core/conn.dart';
-import 'package:studio/src/core/hosts/local_host.dart';
+import 'package:studio/src/hosts/local_host.dart';
 
 class LocalConnector extends HostConnector<LocalHost> {
   LocalConnector();

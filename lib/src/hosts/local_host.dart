@@ -4,7 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter_pty/flutter_pty.dart';
 import 'package:studio/src/core/fs.dart';
 import 'package:studio/src/core/host.dart';
-import 'package:studio/src/core/hosts/local_fs.dart';
+import 'package:studio/src/hosts/local_fs.dart';
 
 class LocalHost implements Host {
   @override
@@ -34,7 +34,7 @@ class LocalHost implements Host {
     final pty = Pty.start(
       shell.command,
       arguments: shell.args,
-      environment: environment,
+      environment: {...Platform.environment, ...environment ?? {}},
       rows: height,
       columns: width,
     );
@@ -99,7 +99,7 @@ _ShellCommand get _platformShell {
   }
 
   if (Platform.isWindows) {
-    return _ShellCommand('cmd.exe', []);
+    return _ShellCommand('powershell.exe', []);
   }
 
   final shell = Platform.environment['SHELL'] ?? 'sh';
