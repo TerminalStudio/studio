@@ -13,6 +13,7 @@ import 'package:studio/src/core/service/tabs_service.dart';
 import 'package:studio/src/core/state/tabs.dart';
 import 'package:studio/src/ui/context_menu.dart';
 import 'package:studio/src/ui/platform_menu.dart';
+import 'package:studio/src/ui/shared/macos_titlebar.dart';
 import 'package:studio/src/ui/shortcut/global_actions.dart';
 import 'package:studio/src/ui/shortcut/global_shortcuts.dart';
 import 'package:studio/src/util/provider_logger.dart';
@@ -33,8 +34,13 @@ Future<void> main() async {
 
 Future<void> initWindow() async {
   await windowManager.ensureInitialized();
-  await windowManager.setBackgroundColor(const Color(0xE01E1E1E));
+  await windowManager.setBackgroundColor(const Color(0x00000000));
   await windowManager.setTitle('TerminalStudio');
+
+  if (defaultTargetPlatform != TargetPlatform.macOS) {
+    await windowManager.setTitleBarStyle(TitleBarStyle.hidden);
+  }
+
   windowManager.waitUntilReadyToShow(null, () async {
     await windowManager.show();
     await windowManager.focus();
@@ -46,18 +52,26 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Widget widget = const GlobalShortcuts(
+      child: GlobalActions(
+        child: Home(),
+      ),
+    );
+
+    if (defaultTargetPlatform == TargetPlatform.macOS) {
+      widget = GlobalPlatformMenu(
+        child: widget,
+      );
+    }
+
+    widget = ContextMenuOverlay(
+      child: widget,
+    );
+
     return MacosApp(
       title: 'TerminalStudio',
       debugShowCheckedModeBanner: false,
-      home: ContextMenuOverlay(
-        child: const GlobalPlatformMenu(
-          child: GlobalShortcuts(
-            child: GlobalActions(
-              child: Home(),
-            ),
-          ),
-        ),
-      ),
+      home: widget,
     );
   }
 }
@@ -108,10 +122,9 @@ class _HomeState extends ConsumerState<Home> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    Widget widget = Column(
       children: [
-        if (defaultTargetPlatform == TargetPlatform.macOS)
-          _buildTitlebar(context),
+        _buildTitlebar(context),
         Expanded(
           child: TabsView(
             ref.watch(tabsProvider),
@@ -121,12 +134,28 @@ class _HomeState extends ConsumerState<Home> {
         ),
       ],
     );
+
+    // if (defaultTargetPlatform == TargetPlatform.windows) {
+    //   widget = VirtualWindowFrame(child: widget);
+    // }
+
+    return widget;
   }
 
   Widget _buildTitlebar(BuildContext context) {
-    return Container(
-      height: 28,
-      color: tabsTheme.selectedBackgroundColor,
+    if (defaultTargetPlatform == TargetPlatform.macOS) {
+      return MacosTitlebar(
+        color: tabsTheme.selectedBackgroundColor,
+      );
+    }
+
+    return SizedBox(
+      height: kWindowCaptionHeight,
+      child: WindowCaption(
+        backgroundColor: tabsTheme.selectedBackgroundColor,
+        brightness: Brightness.light,
+        title: const Text('TerminalStudio'),
+      ),
     );
   }
 

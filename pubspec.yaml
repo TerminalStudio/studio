@@ -42,7 +42,7 @@ dependencies:
 
   flutter_riverpod: ^2.0.0
 
-  flutter_pty: ^0.3.0
+  flutter_pty: ^0.3.1
 
   window_manager: ^0.2.7
 
@@ -65,7 +65,9 @@ dependencies:
   syncfusion_flutter_datagrid: ^20.3.47
 
   code_text_field: ^1.0.2
+
   highlight: ^0.7.0
+
   flutter_highlight: ^0.7.0
 
 dev_dependencies:

@@ -105,7 +105,7 @@ class _TerminalTabViewState extends ConsumerState<TerminalTabView> {
             widget.plugin.terminal,
             controller: widget.plugin.terminalController,
             onSecondaryTapDown: (_, __) => showMenu(),
-            backgroundOpacity: 0,
+            backgroundOpacity: 0.8,
             autofocus: true,
           ),
         ),
