@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:studio/src/core/service/active_tab_service.dart';
 import 'package:studio/src/ui/tabs/devtools_tab.dart';
+import 'package:studio/src/ui/tabs/settings_tab/settings_tab.dart';
 import 'package:studio/src/util/tabs_extension.dart';
 
 class GlobalPlatformMenu extends ConsumerStatefulWidget {
@@ -155,6 +156,14 @@ class _GlobalPlatformMenuState extends ConsumerState<GlobalPlatformMenu> {
                   const PlatformProvidedMenuItem(
                       type: PlatformProvidedMenuItemType.toggleFullScreen),
               ],
+            ),
+            PlatformMenuItem(
+              label: 'Settings',
+              shortcut: const SingleActivator(
+                LogicalKeyboardKey.comma,
+                meta: true,
+              ),
+              onSelected: () => ref.openTab(SettingsTab()),
             ),
             PlatformMenuItem(
               label: 'DevTools',

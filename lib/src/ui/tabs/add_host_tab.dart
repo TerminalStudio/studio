@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:macos_ui/macos_ui.dart';
 import 'package:studio/src/core/record/ssh_host_record.dart';
 import 'package:studio/src/core/state/database.dart';
+import 'package:studio/src/ui/pages/host_edit_page.dart';
 import 'package:studio/src/ui/shared/macos_form.dart';
 
 class AddHostTab extends TabItem {
@@ -24,15 +25,16 @@ class AddHostTabView extends ConsumerStatefulWidget {
 class _AddHostTabViewState extends ConsumerState<AddHostTabView> {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      constraints: const BoxConstraints.expand(),
-      color: const Color.fromARGB(255, 245, 245, 245),
-      alignment: Alignment.center,
-      child: Container(
-        constraints: const BoxConstraints.tightFor(width: 550),
-        child: const AddHostForm(),
-      ),
-    );
+    return HostEditPage();
+    // return Container(
+    //   constraints: const BoxConstraints.expand(),
+    //   color: const Color.fromARGB(255, 245, 245, 245),
+    //   alignment: Alignment.center,
+    //   child: Container(
+    //     constraints: const BoxConstraints.tightFor(width: 550),
+    //     child: const AddHostForm(),
+    //   ),
+    // );
   }
 }
 

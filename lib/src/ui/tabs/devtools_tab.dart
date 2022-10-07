@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:macos_ui/macos_ui.dart';
 import 'package:studio/src/core/state/database.dart';
 import 'package:studio/src/ui/tabs/add_host_tab.dart';
+import 'package:studio/src/ui/tabs/playground.dart';
 import 'package:studio/src/util/tabs_extension.dart';
 import 'package:xterm/xterm.dart';
 
@@ -51,8 +52,14 @@ class _DevToolsTabViewState extends ConsumerState<DevToolsTabView> {
                   onPressed: _clearHosts,
                   child: const Text('Clear SSH hosts'),
                 ),
+                PushButton(
+                  buttonSize: ButtonSize.large,
+                  onPressed: () => tab.replace(PlaygroundTab()),
+                  child: const Text('Playground'),
+                ),
               ],
             ),
+
             const SizedBox(height: 16),
             Expanded(
               child: TerminalView(tab.terminal),

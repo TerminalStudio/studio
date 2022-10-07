@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:context_menus/context_menus.dart';
 import 'package:flex_tabs/flex_tabs.dart';
+import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
@@ -13,6 +14,7 @@ import 'package:studio/src/core/service/tabs_service.dart';
 import 'package:studio/src/core/state/tabs.dart';
 import 'package:studio/src/ui/context_menu.dart';
 import 'package:studio/src/ui/platform_menu.dart';
+import 'package:studio/src/ui/shared/fluent_menu_card.dart';
 import 'package:studio/src/ui/shared/macos_titlebar.dart';
 import 'package:studio/src/ui/shortcut/global_actions.dart';
 import 'package:studio/src/ui/shortcut/global_shortcuts.dart';
@@ -66,9 +68,10 @@ class MyApp extends StatelessWidget {
 
     widget = ContextMenuOverlay(
       child: widget,
+      cardBuilder: (context, children) => FluentMenuCard(children: children),
     );
 
-    return MacosApp(
+    return FluentApp(
       title: 'TerminalStudio',
       debugShowCheckedModeBanner: false,
       home: widget,

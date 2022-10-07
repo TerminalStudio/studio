@@ -50,7 +50,7 @@ dependencies:
 
   context_menus: ^1.0.2
 
-  flex_tabs: ^0.1.1-pre
+  flex_tabs: ^0.1.2-pre
 
   file: ^6.1.4
 
