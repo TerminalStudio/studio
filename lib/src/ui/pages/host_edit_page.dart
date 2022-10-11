@@ -1,22 +1,49 @@
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:studio/src/core/record/ssh_host_record.dart';
+import 'package:studio/src/core/state/database.dart';
 import 'package:studio/src/ui/shared/fluent_back_button.dart';
+import 'package:studio/src/ui/shared/fluent_form.dart';
+import 'package:studio/src/ui/shared/fluent_navigator.dart';
+import 'package:studio/src/util/validators.dart';
 
 class HostEditPage extends ConsumerStatefulWidget {
-  const HostEditPage({super.key});
+  const HostEditPage({super.key, this.record});
+
+  final SSHHostRecord? record;
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _HostEditDialogState();
 }
 
 class _HostEditDialogState extends ConsumerState<HostEditPage> {
+  bool get isEditing => widget.record != null;
+
   @override
   Widget build(BuildContext context) {
     return NavigationView(
       appBar: NavigationAppBar(
-        title: const Text('Edit Host'),
+        title: Text(isEditing ? 'Edit Host' : 'Add Host'),
         leading:
             Navigator.of(context).canPop() ? const FluentBackButton() : null,
+        actions: FluentNavigatorCommandBar(
+          primaryItems: [
+            if (isEditing)
+              CommandBarButton(
+                icon: const Icon(FluentIcons.delete),
+                label: const Text('Delete'),
+                onPressed: () async {
+                  if (widget.record != null) {
+                    await widget.record!.delete();
+                    if (mounted) {
+                      Navigator.of(context).pop();
+                    }
+                  }
+                },
+              ),
+          ],
+        ),
       ),
       pane: NavigationPane(
         displayMode: PaneDisplayMode.top,
@@ -25,32 +52,57 @@ class _HostEditDialogState extends ConsumerState<HostEditPage> {
           PaneItem(
             icon: const Icon(FluentIcons.server),
             title: const Text('Host'),
-            body: const HostEditForm(),
+            body: SSHHostEditForm(
+              record: widget.record,
+              onSaved: _onSaved,
+            ),
           ),
         ],
       ),
+      // content: SSHHostEditForm(
+      //   record: widget.record,
+      //   onSaved: _onSaved,
+      // ),
     );
+  }
+
+  Future<void> _onSaved(record) async {
+    final box = await ref.read(sshHostBoxProvider.future);
+    if (record.isInBox) {
+      record.save();
+    } else {
+      box.add(record);
+    }
+    if (mounted) {
+      Navigator.of(context).pop();
+    }
   }
 }
 
-class HostEditForm extends ConsumerStatefulWidget {
-  const HostEditForm({Key? key}) : super(key: key);
+class SSHHostEditForm extends ConsumerStatefulWidget {
+  const SSHHostEditForm({super.key, this.record, this.onSaved});
+
+  final SSHHostRecord? record;
+
+  final void Function(SSHHostRecord record)? onSaved;
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _HostEditFormState();
 }
 
-class _HostEditFormState extends ConsumerState<HostEditForm> {
+class _HostEditFormState extends ConsumerState<SSHHostEditForm> {
+  final formKey = GlobalKey<FormState>();
+
+  late final record = widget.record ?? SSHHostRecord.uninitialized();
+
   @override
   Widget build(BuildContext context) {
-    return ScaffoldPage.scrollable(
+    Widget widget = Column(
       children: [
-        FluentFormCard(
+        Card(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TextFormBox(header: 'Label'),
-              const FluentFormDivider(),
               const FluentFormHeader('Protocol'),
               ComboboxFormField(
                 value: 'ssh',
@@ -62,38 +114,63 @@ class _HostEditFormState extends ConsumerState<HostEditForm> {
                 ],
                 onChanged: (value) {},
               ),
+              const FluentFormDivider(),
+              TextFormBox(
+                header: 'Label',
+                initialValue: record.name,
+                onSaved: (value) => record.name = value!,
+              ),
             ],
           ),
         ),
-        const FluentCardSeparator(),
-        FluentFormCard(
+        const FluentFormSeparator(),
+        Card(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               TextFormBox(
                 header: 'Host',
+                initialValue: record.host,
                 placeholder: 'example.com / 1.2.3.4',
+                validator: (value) {
+                  if (value == null || value.isEmpty) return 'Host is required';
+                  return isHostOrIP(value) ? null : 'Invalid host or IP';
+                },
+                onSaved: (value) => record.host = value!,
               ),
               const FluentFormDivider(),
               TextFormBox(
                 header: 'Port',
-                initialValue: '22',
+                initialValue: record.port.toString(),
+                validator: (value) {
+                  if (value == null || value.isEmpty) return 'Port is required';
+                  return isPort(value) ? null : 'Invalid port';
+                },
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                ],
+                onSaved: (value) => record.port = int.parse(value!),
               ),
               const FluentFormDivider(),
               TextFormBox(
                 header: 'User',
-                initialValue: 'root',
+                initialValue: record.username,
+                placeholder: 'root',
+                onSaved: (value) => record.username = value,
               ),
               const FluentFormDivider(),
               TextFormBox(
                 header: 'Password',
                 placeholder: '',
+                initialValue: record.password,
+                obscureText: true,
+                onSaved: (value) => record.password = value,
               ),
             ],
           ),
         ),
-        const FluentCardSeparator(),
-        // FluentFormCard(
+        const FluentFormSeparator(),
+        // Card(
         //   child: Column(
         //     crossAxisAlignment: CrossAxisAlignment.start,
         //     children: [
@@ -109,16 +186,16 @@ class _HostEditFormState extends ConsumerState<HostEditForm> {
         //     ],
         //   ),
         // ),
-        FluentFormCard(
+        Card(
           child: Row(
             children: [
               FilledButton(
-                child: Text('Save'),
-                onPressed: () {},
+                onPressed: _submitForm,
+                child: const Text('Save'),
               ),
               const SizedBox(width: 8),
               Button(
-                child: Text('Test Connection'),
+                child: const Text('Test Connection'),
                 onPressed: () {},
               ),
             ],
@@ -126,62 +203,31 @@ class _HostEditFormState extends ConsumerState<HostEditForm> {
         ),
       ],
     );
-  }
-}
 
-class FluentFormDivider extends StatelessWidget {
-  const FluentFormDivider({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: const [
-        SizedBox(height: 8),
-        Divider(),
-        SizedBox(height: 8),
-      ],
+    widget = Form(
+      key: formKey,
+      child: widget,
     );
-  }
-}
 
-class FluentFormHeader extends StatelessWidget {
-  const FluentFormHeader(this.header, {super.key});
-
-  final String header;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(header),
-        const SizedBox(height: 8),
-      ],
-    );
-  }
-}
-
-class FluentFormCard extends StatelessWidget {
-  const FluentFormCard({super.key, required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
+    widget = Container(
       alignment: Alignment.center,
       child: SizedBox(
         width: 500,
-        child: Card(child: child),
+        child: Card(child: widget),
       ),
     );
+
+    widget = SingleChildScrollView(child: widget);
+
+    return ScaffoldPage(
+      content: widget,
+    );
   }
-}
 
-class FluentCardSeparator extends StatelessWidget {
-  const FluentCardSeparator({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const SizedBox(height: 8);
+  void _submitForm() {
+    if (formKey.currentState!.validate()) {
+      formKey.currentState!.save();
+      widget.onSaved?.call(record);
+    }
   }
 }

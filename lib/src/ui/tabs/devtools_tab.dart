@@ -72,7 +72,7 @@ class _DevToolsTabViewState extends ConsumerState<DevToolsTabView> {
   }
 
   void _openAddHostTab() {
-    ref.openTab(AddHostTab());
+    // ref.openTab(AddHostTab());
   }
 
   void _clearHosts() async {

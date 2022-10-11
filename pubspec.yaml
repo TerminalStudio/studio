@@ -50,7 +50,7 @@ dependencies:
 
   context_menus: ^1.0.2
 
-  flex_tabs: ^0.1.2-pre
+  flex_tabs: ^0.2.0-pre
 
   file: ^6.1.4
 
@@ -73,6 +73,8 @@ dependencies:
   fluent_ui: ^4.0.1
 
   font_awesome_flutter: ^10.2.1
+
+  collection: ^1.16.0
 
 dev_dependencies:
   flutter_test:

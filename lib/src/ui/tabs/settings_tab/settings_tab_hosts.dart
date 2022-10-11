@@ -48,16 +48,16 @@ class _HostsSettingViewState extends ConsumerState<HostsSettingView> {
   }
 
   Widget _buildSSHHosts() {
-    final box = ref.watch(sshHostBoxProvider);
+    final hosts = ref.watch(sshHostsProvider);
 
-    return box.when(
+    return hosts.when(
       loading: () => const Center(child: ProgressRing()),
       error: (e, st) => Text('Error: $e'),
       data: (box) => ListView.builder(
         shrinkWrap: true,
         itemCount: box.length,
         itemBuilder: (context, index) {
-          final record = box.getAt(index)!;
+          final record = box[index];
           return ListTile(
             title: Text(record.name),
             subtitle: Text('${record.host}:${record.port}'),
@@ -65,7 +65,7 @@ class _HostsSettingViewState extends ConsumerState<HostsSettingView> {
             onPressed: () {
               Navigator.of(context).push(
                 FluentPageRoute(
-                  builder: (context) => const HostEditPage(),
+                  builder: (context) => HostEditPage(record: record),
                 ),
               );
             },

@@ -20,14 +20,14 @@ class TabsService {
 
   void openFile(File file, {Tabs? tabs}) {
     final targetTabs =
-        ref.read(activeTabServiceProvider).getActiveTabGroup() ?? tabs;
+        tabs ?? ref.read(activeTabServiceProvider).getActiveTabGroup();
 
     targetTabs?.add(CodeEditorTab(file));
   }
 
   void openPlugin(HostSpec host, Plugin plugin, {Tabs? tabs}) {
     final targetTabs =
-        ref.read(activeTabServiceProvider).getActiveTabGroup() ?? tabs;
+        tabs ?? ref.read(activeTabServiceProvider).getActiveTabGroup();
 
     if (targetTabs == null) {
       return;

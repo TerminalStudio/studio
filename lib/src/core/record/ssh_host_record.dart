@@ -35,6 +35,13 @@ class SSHHostRecord extends HiveObject implements HostSpec {
     this.password,
   }) : uuid = uuid ?? uuidV4();
 
+  SSHHostRecord.uninitialized()
+      : this(
+          name: '',
+          host: '',
+          port: 22,
+        );
+
   @override
   HostConnector createConnector() => SSHConnector(this);
 }

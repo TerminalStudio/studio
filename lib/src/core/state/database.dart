@@ -15,6 +15,12 @@ final sshHostBoxProvider = FutureProvider<Box<SSHHostRecord>>((ref) async {
   return hive.openBox<SSHHostRecord>('ssh_hosts');
 });
 
+final sshHostsProvider = FutureProvider<List<SSHHostRecord>>((ref) async {
+  final box = await ref.watch(sshHostBoxProvider.future);
+  box.watch().listen((event) => ref.invalidateSelf());
+  return box.values.toList();
+});
+
 // typeId: 1
 final sshKeyBoxProvider = FutureProvider<Box<SSHKeyRecord>>((ref) async {
   final hive = await ref.watch(hiveProvider.future);

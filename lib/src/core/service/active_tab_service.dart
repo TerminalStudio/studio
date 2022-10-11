@@ -12,7 +12,7 @@ class ActiveTabService {
   }
 
   TabItem? getActiveTab() {
-    return ref.read(tabsProvider).focusedTab.value;
+    return ref.read(tabsProvider).activeTab.value;
   }
 }
 

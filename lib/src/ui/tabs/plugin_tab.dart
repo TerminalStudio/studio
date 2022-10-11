@@ -11,23 +11,23 @@ class PluginTab extends TabItem {
   PluginTab(this.plugin, this.manager) {
     manager.add(plugin);
 
+    _updateTitle();
+
     plugin.title.addListener(_updateTitle);
 
     manager.addListener(_onPluginManagerChanged);
-
-    _updateTitle();
 
     content.value = PluginTabView(plugin);
   }
 
   @override
-  void detach() {
-    // if (plugin.mounted) {
-    //   manager.remove(plugin);
-    // }
-    // plugin.title.removeListener(_updateTitle);
-    // manager.removeListener(_onPluginManagerChanged);
-    super.detach();
+  void didDispose() {
+    if (plugin.mounted) {
+      manager.remove(plugin);
+    }
+    plugin.title.removeListener(_updateTitle);
+    manager.removeListener(_onPluginManagerChanged);
+    super.didDispose();
   }
 
   void _updateTitle() {
