@@ -46,7 +46,8 @@ class FileManagerPlugin with Plugin {
 
   Future<void> _onNavigate(String path) async {
     currentPath.value = fs.path.normalize(path);
-    title.value = currentDirectory;
+    title.value =
+        currentDirectory == null ? null : currentDirectory! + fs.path.separator;
     _fetchFiles();
   }
 
