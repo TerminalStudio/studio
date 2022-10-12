@@ -53,7 +53,8 @@ class CodeEditorView extends StatelessWidget {
                 fontFamily: 'SourceCode',
                 fontSize: 12,
                 fontFamilyFallback: [
-                  'Menlo',
+                  'Menlo', // macos
+                  'Consolas', // windows
                   'monospace',
                 ],
               ),
