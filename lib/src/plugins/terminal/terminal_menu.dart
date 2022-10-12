@@ -98,12 +98,11 @@ class TerminalContextMenuState extends ConsumerState<TerminalContextMenu>
             onPressed: () => handlePressed(context, _handleOpenFileManager),
           ),
         ),
-        buildDivider(),
         buttonBuilder(
           context,
           ContextMenuButtonConfig(
             "Uptime",
-            icon: const Icon(Icons.folder_open),
+            icon: const Icon(Icons.keyboard_double_arrow_up_outlined),
             // shortcutLabel: 'Ctrl+Shift+F',
             onPressed: () => handlePressed(context, _handleStarterPlugin),
           ),

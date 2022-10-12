@@ -1,11 +1,12 @@
 import 'package:context_menus/context_menus.dart';
 import 'package:flex_tabs/flex_tabs.dart';
-import 'package:flutter/material.dart';
+import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:studio/src/hosts/local_spec.dart';
 import 'package:studio/src/core/service/tabs_service.dart';
 import 'package:studio/src/core/state/database.dart';
 import 'package:studio/src/ui/tabs/add_host_tab.dart';
+import 'package:studio/src/ui/tabs/settings_tab/settings_tab.dart';
 import 'package:studio/src/util/tabs_extension.dart';
 
 class DropdownContextMenu extends ConsumerStatefulWidget {
@@ -30,21 +31,35 @@ class DropdownContextMenuState extends ConsumerState<DropdownContextMenu>
           context,
           ContextMenuButtonConfig(
             'Local',
-            icon: const Icon(Icons.computer_outlined),
+            icon: const Icon(FluentIcons.tablet),
             onPressed: () => handlePressed(context, () {
               final tabsService = ref.read(tabsServiceProvider);
               tabsService.openTerminal(LocalHostSpec());
             }),
           ),
         ),
-        buildDivider(),
         ...buildHosts(),
         buttonBuilder(
           context,
           ContextMenuButtonConfig(
             'Add New',
-            icon: const Icon(Icons.add),
-            onPressed: () => handlePressed(context, handleAddHost),
+            icon: const Icon(FluentIcons.add),
+            onPressed: () => handlePressed(
+              context,
+              () => ref.openTab(AddHostTab()),
+            ),
+          ),
+        ),
+        buildDivider(),
+        buttonBuilder(
+          context,
+          ContextMenuButtonConfig(
+            'Settings',
+            icon: const Icon(FluentIcons.settings),
+            onPressed: () => handlePressed(
+              context,
+              () => ref.openTab(SettingsTab()),
+            ),
           ),
         ),
       ],
@@ -66,7 +81,7 @@ class DropdownContextMenuState extends ConsumerState<DropdownContextMenu>
           context,
           ContextMenuButtonConfig(
             host.name,
-            icon: const Icon(Icons.computer_outlined),
+            icon: const Icon(FluentIcons.cloud),
             onPressed: () => handlePressed(context, () async {
               final tabsService = ref.read(tabsServiceProvider);
               tabsService.openTerminal(host, tabs: tabs);
@@ -76,12 +91,6 @@ class DropdownContextMenuState extends ConsumerState<DropdownContextMenu>
       );
     }
 
-    items.add(buildDivider());
-
     return items;
-  }
-
-  Future<void> handleAddHost() async {
-    ref.openTab(AddHostTab());
   }
 }
