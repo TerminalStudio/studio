@@ -14,26 +14,41 @@ class TabsService {
 
   TabsService(this.ref);
 
-  void openTerminal(HostSpec hostSpec, {Tabs? tabs}) {
-    return openPlugin(hostSpec, TerminalPlugin(), tabs: tabs);
+  void openTerminal(HostSpec hostSpec, {Tabs? tabs, bool activate = true}) {
+    return openPlugin(hostSpec, TerminalPlugin(),
+        tabs: tabs, activate: activate);
   }
 
-  void openFile(File file, {Tabs? tabs}) {
-    final targetTabs =
-        tabs ?? ref.read(activeTabServiceProvider).getActiveTabGroup();
-
-    targetTabs?.add(CodeEditorTab(file));
+  void openPlugin(
+    HostSpec host,
+    Plugin plugin, {
+    Tabs? tabs,
+    bool activate = true,
+  }) {
+    openTab(
+      PluginTab(plugin, ref.read(pluginManagerProvider(host))),
+      tabs: tabs,
+      activate: activate,
+    );
   }
 
-  void openPlugin(HostSpec host, Plugin plugin, {Tabs? tabs}) {
-    final targetTabs =
+  void openFile(File file, {Tabs? tabs, bool activate = true}) {
+    openTab(CodeEditorTab(file), tabs: tabs, activate: activate);
+  }
+
+  void openTab(TabItem tab, {Tabs? tabs, bool activate = true}) {
+    final targetTabGroup =
         tabs ?? ref.read(activeTabServiceProvider).getActiveTabGroup();
 
-    if (targetTabs == null) {
+    if (targetTabGroup == null) {
       return;
     }
 
-    targetTabs.add(PluginTab(plugin, ref.read(pluginManagerProvider(host))));
+    targetTabGroup.add(tab);
+
+    if (activate) {
+      tab.activate();
+    }
   }
 }
 

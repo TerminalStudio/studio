@@ -31,7 +31,27 @@ class PluginTab extends TabItem {
   }
 
   void _updateTitle() {
-    title.value = plugin.title.value;
+    final titleWidget = plugin.title.value;
+    title.value = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (titleWidget != null)
+          Flexible(
+            child: Text(
+              titleWidget,
+              softWrap: false,
+            ),
+          ),
+        if (titleWidget != null) const SizedBox(width: 4),
+        Text(
+          manager.hostSpec.name,
+          style: const TextStyle(
+            fontSize: 10,
+            color: CupertinoColors.systemGrey,
+          ),
+        ),
+      ],
+    );
   }
 
   void _onPluginManagerChanged() {

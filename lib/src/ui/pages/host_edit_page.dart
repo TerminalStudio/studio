@@ -98,6 +98,7 @@ class _HostEditFormState extends ConsumerState<SSHHostEditForm> {
   @override
   Widget build(BuildContext context) {
     Widget widget = Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Card(
           child: Column(
@@ -213,15 +214,16 @@ class _HostEditFormState extends ConsumerState<SSHHostEditForm> {
       alignment: Alignment.center,
       child: SizedBox(
         width: 500,
-        child: Card(child: widget),
+        child: widget,
       ),
     );
 
-    widget = SingleChildScrollView(child: widget);
-
-    return ScaffoldPage(
-      content: widget,
+    widget = SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: widget,
     );
+
+    return widget;
   }
 
   void _submitForm() {

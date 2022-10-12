@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:studio/src/core/service/tabs_service.dart';
 import 'package:studio/src/plugins/file_manager/file_manager_plugin.dart';
+import 'package:studio/src/plugins/starter/starter_plugin.dart';
 import 'package:studio/src/plugins/terminal/terminal_plugin.dart';
 import 'package:xterm/xterm.dart';
 
@@ -97,6 +98,16 @@ class TerminalContextMenuState extends ConsumerState<TerminalContextMenu>
             onPressed: () => handlePressed(context, _handleOpenFileManager),
           ),
         ),
+        buildDivider(),
+        buttonBuilder(
+          context,
+          ContextMenuButtonConfig(
+            "Uptime",
+            icon: const Icon(Icons.folder_open),
+            // shortcutLabel: 'Ctrl+Shift+F',
+            onPressed: () => handlePressed(context, _handleStarterPlugin),
+          ),
+        ),
       ],
     );
   }
@@ -142,6 +153,13 @@ class TerminalContextMenuState extends ConsumerState<TerminalContextMenu>
     ref.read(tabsServiceProvider).openPlugin(
           plugin.hostSpec,
           FileManagerPlugin(),
+        );
+  }
+
+  Future<void> _handleStarterPlugin() async {
+    ref.read(tabsServiceProvider).openPlugin(
+          plugin.hostSpec,
+          StarterPlugin(),
         );
   }
 }

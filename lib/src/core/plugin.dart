@@ -43,7 +43,7 @@ abstract class Plugin {
   bool get connected => _host != null;
 
   /// The title of the plugin. Usually displayed as the tab title.
-  final title = ValueNotifier<Widget?>(null);
+  final title = ValueNotifier<String?>(null);
 
   /// Called when the plugin is mounted to a host. After this method is called,
   /// the [hostSpec] property will be available.

@@ -50,10 +50,17 @@ Future<_SSHExecutionResult> _collectResult(SSHSession session) async {
   final stdout = StringBuffer();
   final stderr = StringBuffer();
 
-  session.stdout.listen((data) => stdout.write(String.fromCharCodes(data)));
-  session.stderr.listen((data) => stderr.write(String.fromCharCodes(data)));
+  final stdoutStream = session.stdout.listen(
+    (data) => stdout.write(String.fromCharCodes(data)),
+  );
+
+  final stderrStream = session.stderr.listen(
+    (data) => stderr.write(String.fromCharCodes(data)),
+  );
 
   await session.done;
+  await stdoutStream.asFuture();
+  await stderrStream.asFuture();
 
   return _SSHExecutionResult(
     exitCode: session.exitCode ?? 0,

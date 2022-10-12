@@ -21,15 +21,14 @@ class TerminalPlugin extends Plugin {
 
   void _updateTitle() {
     if (session != null) {
-      title.value = Text(
-        '$terminalTitle — ${terminal.viewWidth}x${terminal.viewHeight}',
-      );
+      title.value =
+          '$terminalTitle — ${terminal.viewWidth}x${terminal.viewHeight}';
     }
   }
 
   @override
   void didMounted() {
-    title.value = Text(hostSpec.name);
+    title.value = 'Terminal';
 
     terminal.onTitleChange = (title) {
       terminalTitle = title;
@@ -52,7 +51,7 @@ class TerminalPlugin extends Plugin {
 
   @override
   void didConnected() async {
-    title.value = const Text('starting session...');
+    title.value = 'connected';
 
     session = await host.shell(
       width: terminal.viewWidth,

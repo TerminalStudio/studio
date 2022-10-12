@@ -69,7 +69,7 @@ class FileManagerPlugin with Plugin {
 
   @override
   void didMounted() {
-    title.value = Text('Files (${hostSpec.name})');
+    title.value = 'Files';
   }
 
   @override
