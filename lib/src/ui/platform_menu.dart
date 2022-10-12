@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:studio/src/core/service/active_tab_service.dart';
+import 'package:studio/src/ui/shortcuts.dart' as shortcuts;
 import 'package:studio/src/ui/tabs/devtools_tab.dart';
 import 'package:studio/src/ui/tabs/settings_tab/settings_tab.dart';
 import 'package:studio/src/util/tabs_extension.dart';
@@ -66,10 +67,7 @@ class _GlobalPlatformMenuState extends ConsumerState<GlobalPlatformMenu> {
               members: [
                 PlatformMenuItem(
                   label: 'Copy',
-                  shortcut: const SingleActivator(
-                    LogicalKeyboardKey.keyC,
-                    meta: true,
-                  ),
+                  shortcut: shortcuts.terminalCopy,
                   onSelected: () {
                     final primaryContext = primaryFocus?.context;
                     if (primaryContext == null) {
@@ -83,10 +81,7 @@ class _GlobalPlatformMenuState extends ConsumerState<GlobalPlatformMenu> {
                 ),
                 PlatformMenuItem(
                   label: 'Paste',
-                  shortcut: const SingleActivator(
-                    LogicalKeyboardKey.keyV,
-                    meta: true,
-                  ),
+                  shortcut: shortcuts.terminalPaste,
                   onSelected: () {
                     final primaryContext = primaryFocus?.context;
                     if (primaryContext == null) {
@@ -100,10 +95,7 @@ class _GlobalPlatformMenuState extends ConsumerState<GlobalPlatformMenu> {
                 ),
                 PlatformMenuItem(
                   label: 'Select All',
-                  shortcut: const SingleActivator(
-                    LogicalKeyboardKey.keyA,
-                    meta: true,
-                  ),
+                  shortcut: shortcuts.terminalSelectAll,
                   onSelected: () {
                     final primaryContext = primaryFocus?.context;
                     if (primaryContext == null) {
@@ -140,10 +132,7 @@ class _GlobalPlatformMenuState extends ConsumerState<GlobalPlatformMenu> {
               members: [
                 PlatformMenuItem(
                   label: 'Close Tab',
-                  shortcut: const SingleActivator(
-                    LogicalKeyboardKey.keyW,
-                    meta: true,
-                  ),
+                  shortcut: shortcuts.tabClose,
                   onSelected: () {
                     return ref
                         .read(activeTabServiceProvider)
@@ -159,15 +148,12 @@ class _GlobalPlatformMenuState extends ConsumerState<GlobalPlatformMenu> {
             ),
             PlatformMenuItem(
               label: 'Settings',
-              shortcut: const SingleActivator(
-                LogicalKeyboardKey.comma,
-                meta: true,
-              ),
+              shortcut: shortcuts.openSettings,
               onSelected: () => ref.openTab(SettingsTab()),
             ),
             PlatformMenuItem(
               label: 'DevTools',
-              shortcut: const SingleActivator(LogicalKeyboardKey.f12),
+              shortcut: shortcuts.openDevTools,
               onSelected: () => ref.openTab(DevToolsTab()),
             ),
           ],
