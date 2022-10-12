@@ -266,7 +266,7 @@ class SSHFile extends File {
     bool flush = false,
   }) async {
     final file = await client.open(path, mode: _toSftpFileMode(mode));
-    await file.write(Stream.value(bytes));
+    await file.writeBytes(bytes);
     await file.close();
     return this;
   }
