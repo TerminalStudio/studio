@@ -1,5 +1,4 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:fluent_ui/fluent_ui.dart';
 
 class NavigationBreadcrumbs extends StatelessWidget {
   const NavigationBreadcrumbs({
@@ -29,8 +28,11 @@ class NavigationBreadcrumbs extends StatelessWidget {
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      child: Row(
-        children: widgets,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        child: Row(
+          children: widgets,
+        ),
       ),
     );
   }
@@ -54,13 +56,6 @@ class BreadcrumbButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextButton(
       onPressed: onPressed,
-      style: TextButton.styleFrom(
-        minimumSize: const Size(36, 36),
-        disabledForegroundColor: Colors.grey,
-        // textStyle: TextStyle(
-        //   fontWeight: isPrimary ? FontWeight.bold : FontWeight.normal,
-        // ),
-      ),
       child: Text(breadcrumb),
     );
   }
@@ -72,9 +67,9 @@ class BreadcrumbSeprator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Icon(
-      CupertinoIcons.chevron_right,
+      FluentIcons.chevron_right,
       size: 8,
-      color: CupertinoColors.secondaryLabel,
+      // color: CupertinoColors.secondaryLabel,
     );
   }
 }

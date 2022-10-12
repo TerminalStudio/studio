@@ -28,7 +28,7 @@ class TerminalPlugin extends Plugin {
 
   @override
   void didMounted() {
-    title.value = 'Terminal';
+    title.value = 'Connecting';
 
     terminal.onTitleChange = (title) {
       terminalTitle = title;
@@ -51,7 +51,7 @@ class TerminalPlugin extends Plugin {
 
   @override
   void didConnected() async {
-    title.value = 'connected';
+    title.value = 'Terminal';
 
     session = await host.shell(
       width: terminal.viewWidth,

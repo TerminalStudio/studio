@@ -1,5 +1,4 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:studio/src/core/fs.dart';
 import 'package:studio/src/core/plugin.dart';
@@ -11,9 +10,14 @@ import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 class FileManagerPlugin with Plugin {
   late FileSystem fs;
 
-  final files = ValueNotifier(<FileSystemEntity>[]);
+  String? homePath;
 
   final currentPath = ValueNotifier<String?>(null);
+
+  String? get currentDirectory =>
+      currentPath.value == null ? null : fs.path.basename(currentPath.value!);
+
+  final files = ValueNotifier(<FileSystemEntity>[]);
 
   late final navigationStack = NavigationStack<String>(onNavigate: _onNavigate);
 
@@ -41,17 +45,18 @@ class FileManagerPlugin with Plugin {
   }
 
   Future<void> _onNavigate(String path) async {
-    currentPath.value = path;
+    currentPath.value = fs.path.normalize(path);
+    title.value = currentDirectory;
     _fetchFiles();
   }
 
-  Future<void> goto(Directory target) async {
+  Future<void> goto(String target) async {
     late final String path;
 
-    if (fs.path.isAbsolute(target.path)) {
-      path = target.path;
+    if (fs.path.isAbsolute(target)) {
+      path = target;
     } else {
-      path = fs.path.join(currentPath.value!, target.path);
+      path = fs.path.normalize(fs.path.join(currentPath.value!, target));
     }
 
     navigationStack.push(path);
@@ -59,12 +64,21 @@ class FileManagerPlugin with Plugin {
 
   List<String> get breadcrumbs {
     final path = currentPath.value;
-    if (path == null) {
-      return [];
-    }
-
+    if (path == null) return [];
     final parts = fs.path.split(path);
     return parts;
+  }
+
+  bool get canGoUp => breadcrumbs.length > 1;
+
+  Future<void> goUp() async {
+    if (!canGoUp) return;
+    await goto('..');
+  }
+
+  Future<void> goHome() async {
+    if (homePath == null) return;
+    await goto(homePath!);
   }
 
   @override
@@ -76,24 +90,29 @@ class FileManagerPlugin with Plugin {
   void didConnected() async {
     fs = await host.connectFileSystem();
 
-    goto(await fs.directory('.').absolute);
+    homePath = (await fs.directory('.').absolute).path;
+
+    goto(homePath!);
   }
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-      child: Column(
+    return NavigationView(
+      content: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(height: 40, child: FileNavigationView(this)),
-          Expanded(child: FileListView(this))
+          SizedBox(height: 40, child: FileListToolbar(this)),
+          Expanded(child: FileListView(this)),
+          const Divider(),
+          SizedBox(height: 30, child: FileListNavigator(this)),
         ],
       ),
     );
   }
 }
 
-class FileNavigationView extends StatelessWidget {
-  const FileNavigationView(this.plugin, {super.key});
+class FileListToolbar extends StatelessWidget {
+  const FileListToolbar(this.plugin, {super.key});
 
   final FileManagerPlugin plugin;
 
@@ -101,47 +120,73 @@ class FileNavigationView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: stack,
-      builder: (context, _) {
-        return _buildToolbar(context);
-      },
+    return ValueListenableBuilder(
+      valueListenable: plugin.currentPath,
+      builder: (context, currentPath, _) => _buildToolbar(context),
     );
   }
 
   Widget _buildToolbar(BuildContext context) {
-    return NavigationToolbar(
-      leading: Row(
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Row(
         children: [
-          const SizedBox(width: 8),
           IconButton(
-            icon: const Icon(CupertinoIcons.back),
+            icon: const Icon(FluentIcons.back),
             onPressed: stack.canGoBack ? stack.back : null,
-            iconSize: 16,
-            color: CupertinoColors.label,
-            disabledColor: CupertinoColors.inactiveGray,
-          ),
-          IconButton(
-            icon: const Icon(CupertinoIcons.forward),
-            onPressed: stack.canGoForward ? stack.forward : null,
-            iconSize: 16,
-            color: CupertinoColors.label,
-            disabledColor: CupertinoColors.inactiveGray,
           ),
           const SizedBox(width: 8),
-          // Text(plugin.currentPath.value ?? ''),
-          Expanded(child: _buildPath(context)),
+          IconButton(
+            icon: const Icon(FluentIcons.forward),
+            onPressed: stack.canGoForward ? stack.forward : null,
+          ),
+          const SizedBox(width: 8),
+          IconButton(
+            icon: const Icon(FluentIcons.up),
+            onPressed: plugin.canGoUp ? plugin.goUp : null,
+          ),
+          const SizedBox(width: 8),
+          IconButton(
+            icon: const Icon(FluentIcons.home),
+            onPressed: plugin.homePath == null ? null : plugin.goHome,
+          ),
+          const SizedBox(width: 16),
+          const Divider(direction: Axis.vertical),
+          const SizedBox(width: 16),
+          Expanded(child: Text(plugin.currentDirectory ?? '')),
+          const SizedBox(width: 8),
+          IconButton(
+            icon: const Icon(FluentIcons.refresh),
+            onPressed: () => plugin._fetchFiles(),
+          ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildPath(BuildContext context) {
-    return NavigationBreadcrumbs(
-      breadcrumbs: plugin.breadcrumbs,
-      onTap: (breadcrumbs) {
-        plugin.goto(plugin.fs.directory(plugin.fs.path.joinAll(breadcrumbs)));
-      },
+class FileListNavigator extends StatelessWidget {
+  const FileListNavigator(this.plugin, {super.key});
+
+  final FileManagerPlugin plugin;
+
+  NavigationStack<String> get stack => plugin.navigationStack;
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: ValueListenableBuilder(
+        valueListenable: plugin.currentPath,
+        builder: (context, currentPath, _) {
+          return NavigationBreadcrumbs(
+            breadcrumbs: plugin.breadcrumbs,
+            onTap: (breadcrumbs) {
+              plugin.goto(plugin.fs.path.joinAll(breadcrumbs));
+            },
+          );
+        },
+      ),
     );
   }
 }
@@ -185,7 +230,7 @@ class FileListViewState extends ConsumerState<FileListView> {
         final file = row.file;
 
         if (file is Directory) {
-          plugin.goto(file);
+          plugin.goto(file.path);
         } else if (file is File) {
           ref.read(tabsServiceProvider).openFile(file);
         }
@@ -236,8 +281,8 @@ class _FilesDataSource extends DataGridSource {
             const SizedBox(width: 8),
             Icon(
               row.file is Directory
-                  ? CupertinoIcons.folder
-                  : CupertinoIcons.doc,
+                  ? FluentIcons.folder
+                  : FluentIcons.file_code,
               size: 16,
             ),
             Container(
