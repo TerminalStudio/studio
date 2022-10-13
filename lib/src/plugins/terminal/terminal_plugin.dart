@@ -5,9 +5,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show Colors;
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:studio/src/core/host.dart';
-import 'package:studio/src/core/plugin.dart';
-import 'package:studio/src/plugins/terminal/terminal_menu.dart';
+import 'package:terminal_studio/src/core/host.dart';
+import 'package:terminal_studio/src/core/plugin.dart';
+import 'package:terminal_studio/src/plugins/terminal/terminal_menu.dart';
 import 'package:xterm/xterm.dart';
 
 class TerminalPlugin extends Plugin {

@@ -5,7 +5,7 @@ import 'package:highlight/highlight.dart';
 import 'package:code_text_field/code_text_field.dart';
 import 'package:flex_tabs/flex_tabs.dart';
 import 'package:highlight/languages/all.dart';
-import 'package:studio/src/core/fs.dart';
+import 'package:terminal_studio/src/core/fs.dart';
 
 class CodeEditorTab extends TabItem {
   final File file;

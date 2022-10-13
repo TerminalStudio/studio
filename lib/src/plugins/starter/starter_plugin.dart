@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:studio/src/core/plugin.dart';
+import 'package:terminal_studio/src/core/plugin.dart';
 
 class StarterPlugin extends Plugin {
   final _uptime = ValueNotifier<String?>(null);

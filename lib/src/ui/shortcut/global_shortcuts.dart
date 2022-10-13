@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:studio/src/ui/shortcut/intents.dart';
-import 'package:studio/src/ui/shortcuts.dart' as shortcuts;
+import 'package:terminal_studio/src/ui/shortcut/intents.dart';
+import 'package:terminal_studio/src/ui/shortcuts.dart' as shortcuts;
 
 class GlobalShortcuts extends StatelessWidget {
   const GlobalShortcuts({super.key, required this.child});

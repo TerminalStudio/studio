@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:studio/src/core/service/active_tab_service.dart';
-import 'package:studio/src/ui/shortcuts.dart' as shortcuts;
-import 'package:studio/src/ui/tabs/devtools_tab.dart';
-import 'package:studio/src/ui/tabs/settings_tab/settings_tab.dart';
-import 'package:studio/src/util/tabs_extension.dart';
+import 'package:terminal_studio/src/core/service/active_tab_service.dart';
+import 'package:terminal_studio/src/ui/shortcuts.dart' as shortcuts;
+import 'package:terminal_studio/src/ui/tabs/devtools_tab.dart';
+import 'package:terminal_studio/src/ui/tabs/settings_tab/settings_tab.dart';
+import 'package:terminal_studio/src/util/tabs_extension.dart';
 
 class GlobalPlatformMenu extends ConsumerStatefulWidget {
   const GlobalPlatformMenu({super.key, required this.child});

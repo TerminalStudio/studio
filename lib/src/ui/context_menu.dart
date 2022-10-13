@@ -2,12 +2,12 @@ import 'package:context_menus/context_menus.dart';
 import 'package:flex_tabs/flex_tabs.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:studio/src/hosts/local_spec.dart';
-import 'package:studio/src/core/service/tabs_service.dart';
-import 'package:studio/src/core/state/database.dart';
-import 'package:studio/src/ui/tabs/add_host_tab.dart';
-import 'package:studio/src/ui/tabs/settings_tab/settings_tab.dart';
-import 'package:studio/src/util/tabs_extension.dart';
+import 'package:terminal_studio/src/hosts/local_spec.dart';
+import 'package:terminal_studio/src/core/service/tabs_service.dart';
+import 'package:terminal_studio/src/core/state/database.dart';
+import 'package:terminal_studio/src/ui/tabs/add_host_tab.dart';
+import 'package:terminal_studio/src/ui/tabs/settings_tab/settings_tab.dart';
+import 'package:terminal_studio/src/util/tabs_extension.dart';
 
 class DropdownContextMenu extends ConsumerStatefulWidget {
   const DropdownContextMenu(this.tabs, {super.key});

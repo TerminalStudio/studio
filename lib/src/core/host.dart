@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:studio/src/core/fs.dart';
+import 'package:terminal_studio/src/core/fs.dart';
 
 abstract class Host {
   Future<FileSystem> connectFileSystem();

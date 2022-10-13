@@ -1,6 +1,6 @@
 import 'package:flex_tabs/flex_tabs.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:studio/src/core/state/tabs.dart';
+import 'package:terminal_studio/src/core/state/tabs.dart';
 
 class ActiveTabService {
   final Ref ref;

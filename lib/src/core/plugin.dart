@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
-import 'package:studio/src/core/conn.dart';
-import 'package:studio/src/core/host.dart';
+import 'package:terminal_studio/src/core/conn.dart';
+import 'package:terminal_studio/src/core/host.dart';
 
 abstract class Plugin {
   PluginManager? _manager;

@@ -2,9 +2,9 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_pty/flutter_pty.dart';
-import 'package:studio/src/core/fs.dart';
-import 'package:studio/src/core/host.dart';
-import 'package:studio/src/hosts/local_fs.dart';
+import 'package:terminal_studio/src/core/fs.dart';
+import 'package:terminal_studio/src/core/host.dart';
+import 'package:terminal_studio/src/hosts/local_fs.dart';
 
 class LocalHost implements Host {
   @override

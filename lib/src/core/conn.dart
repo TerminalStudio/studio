@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:studio/src/core/host.dart';
+import 'package:terminal_studio/src/core/host.dart';
 
 abstract class HostSpec {
   String get name;

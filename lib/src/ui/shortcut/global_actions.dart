@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:studio/src/core/service/window_service.dart';
-import 'package:studio/src/ui/shortcut/intents.dart';
+import 'package:terminal_studio/src/core/service/window_service.dart';
+import 'package:terminal_studio/src/ui/shortcut/intents.dart';
 
 class GlobalActions extends ConsumerWidget {
   const GlobalActions({super.key, required this.child});

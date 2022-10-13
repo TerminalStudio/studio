@@ -2,10 +2,10 @@ import 'package:context_menus/context_menus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:studio/src/core/service/tabs_service.dart';
-import 'package:studio/src/plugins/file_manager/file_manager_plugin.dart';
-import 'package:studio/src/plugins/starter/starter_plugin.dart';
-import 'package:studio/src/plugins/terminal/terminal_plugin.dart';
+import 'package:terminal_studio/src/core/service/tabs_service.dart';
+import 'package:terminal_studio/src/plugins/file_manager/file_manager_plugin.dart';
+import 'package:terminal_studio/src/plugins/starter/starter_plugin.dart';
+import 'package:terminal_studio/src/plugins/terminal/terminal_plugin.dart';
 import 'package:xterm/xterm.dart';
 
 class TerminalContextMenu extends ConsumerStatefulWidget {

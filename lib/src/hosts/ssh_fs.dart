@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 import 'package:dartssh2/dartssh2.dart';
 import 'package:path/path.dart' as p;
-import 'package:studio/src/core/fs.dart';
+import 'package:terminal_studio/src/core/fs.dart';
 
 class SSHFileSystem extends FileSystem {
   final SftpClient client;

@@ -1,12 +1,12 @@
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:studio/src/core/record/ssh_host_record.dart';
-import 'package:studio/src/core/state/database.dart';
-import 'package:studio/src/ui/shared/fluent_back_button.dart';
-import 'package:studio/src/ui/shared/fluent_form.dart';
-import 'package:studio/src/ui/shared/fluent_navigator.dart';
-import 'package:studio/src/util/validators.dart';
+import 'package:terminal_studio/src/core/record/ssh_host_record.dart';
+import 'package:terminal_studio/src/core/state/database.dart';
+import 'package:terminal_studio/src/ui/shared/fluent_back_button.dart';
+import 'package:terminal_studio/src/ui/shared/fluent_form.dart';
+import 'package:terminal_studio/src/ui/shared/fluent_navigator.dart';
+import 'package:terminal_studio/src/util/validators.dart';
 
 class HostEditPage extends ConsumerStatefulWidget {
   const HostEditPage({super.key, this.record});

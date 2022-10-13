@@ -1,8 +1,8 @@
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:studio/src/core/state/database.dart';
-import 'package:studio/src/ui/pages/host_edit_page.dart';
+import 'package:terminal_studio/src/core/state/database.dart';
+import 'package:terminal_studio/src/ui/pages/host_edit_page.dart';
 
 class HostsSettingView extends ConsumerStatefulWidget {
   const HostsSettingView({Key? key}) : super(key: key);

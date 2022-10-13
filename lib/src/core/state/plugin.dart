@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:studio/src/core/conn.dart';
-import 'package:studio/src/core/plugin.dart';
-import 'package:studio/src/core/state/host.dart';
+import 'package:terminal_studio/src/core/conn.dart';
+import 'package:terminal_studio/src/core/plugin.dart';
+import 'package:terminal_studio/src/core/state/host.dart';
 
 final pluginManagerProvider = Provider.family<PluginManager, HostSpec>(
   name: 'pluginManagerProvider',

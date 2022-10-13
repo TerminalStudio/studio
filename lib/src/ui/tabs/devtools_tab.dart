@@ -2,10 +2,10 @@ import 'package:flex_tabs/flex_tabs.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:macos_ui/macos_ui.dart';
-import 'package:studio/src/core/state/database.dart';
-import 'package:studio/src/ui/tabs/add_host_tab.dart';
-import 'package:studio/src/ui/tabs/playground.dart';
-import 'package:studio/src/util/tabs_extension.dart';
+import 'package:terminal_studio/src/core/state/database.dart';
+import 'package:terminal_studio/src/ui/tabs/add_host_tab.dart';
+import 'package:terminal_studio/src/ui/tabs/playground.dart';
+import 'package:terminal_studio/src/util/tabs_extension.dart';
 import 'package:xterm/xterm.dart';
 
 class DevToolsTab extends TabItem {

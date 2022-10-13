@@ -1,7 +1,7 @@
 import 'package:flex_tabs/flex_tabs.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:studio/src/core/plugin.dart';
+import 'package:terminal_studio/src/core/plugin.dart';
 
 class PluginTab extends TabItem {
   final Plugin plugin;

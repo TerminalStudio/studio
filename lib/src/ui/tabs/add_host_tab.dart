@@ -1,7 +1,7 @@
 import 'package:flex_tabs/flex_tabs.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:studio/src/ui/pages/host_edit_page.dart';
+import 'package:terminal_studio/src/ui/pages/host_edit_page.dart';
 
 class AddHostTab extends TabItem {
   AddHostTab() {

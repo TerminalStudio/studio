@@ -1,7 +1,7 @@
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:studio/src/util/target_platform.dart';
+import 'package:terminal_studio/src/util/target_platform.dart';
 
 SingleActivator get openSettings {
   return defaultTargetPlatform.isApple

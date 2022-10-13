@@ -1,9 +1,9 @@
 import 'dart:typed_data';
 
 import 'package:dartssh2/dartssh2.dart';
-import 'package:studio/src/core/fs.dart';
-import 'package:studio/src/core/host.dart';
-import 'package:studio/src/hosts/ssh_fs.dart';
+import 'package:terminal_studio/src/core/fs.dart';
+import 'package:terminal_studio/src/core/host.dart';
+import 'package:terminal_studio/src/hosts/ssh_fs.dart';
 
 class SSHHost implements Host {
   SSHHost(this.client);

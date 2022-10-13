@@ -8,16 +8,16 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:studio/src/hosts/local_spec.dart';
-import 'package:studio/src/core/service/tabs_service.dart';
-import 'package:studio/src/core/state/tabs.dart';
-import 'package:studio/src/ui/context_menu.dart';
-import 'package:studio/src/ui/platform_menu.dart';
-import 'package:studio/src/ui/shared/fluent_menu_card.dart';
-import 'package:studio/src/ui/shared/macos_titlebar.dart';
-import 'package:studio/src/ui/shortcut/global_actions.dart';
-import 'package:studio/src/ui/shortcut/global_shortcuts.dart';
-import 'package:studio/src/util/provider_logger.dart';
+import 'package:terminal_studio/src/hosts/local_spec.dart';
+import 'package:terminal_studio/src/core/service/tabs_service.dart';
+import 'package:terminal_studio/src/core/state/tabs.dart';
+import 'package:terminal_studio/src/ui/context_menu.dart';
+import 'package:terminal_studio/src/ui/platform_menu.dart';
+import 'package:terminal_studio/src/ui/shared/fluent_menu_card.dart';
+import 'package:terminal_studio/src/ui/shared/macos_titlebar.dart';
+import 'package:terminal_studio/src/ui/shortcut/global_actions.dart';
+import 'package:terminal_studio/src/ui/shortcut/global_shortcuts.dart';
+import 'package:terminal_studio/src/util/provider_logger.dart';
 import 'package:window_manager/window_manager.dart';
 
 Future<void> main() async {

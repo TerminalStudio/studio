@@ -1,10 +1,10 @@
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:studio/src/core/fs.dart';
-import 'package:studio/src/core/plugin.dart';
-import 'package:studio/src/core/service/tabs_service.dart';
-import 'package:studio/src/plugins/file_manager/navigation_breadcrumbs.dart';
-import 'package:studio/src/plugins/file_manager/navigation_stack.dart';
+import 'package:terminal_studio/src/core/fs.dart';
+import 'package:terminal_studio/src/core/plugin.dart';
+import 'package:terminal_studio/src/core/service/tabs_service.dart';
+import 'package:terminal_studio/src/plugins/file_manager/navigation_breadcrumbs.dart';
+import 'package:terminal_studio/src/plugins/file_manager/navigation_stack.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 class FileManagerPlugin with Plugin {

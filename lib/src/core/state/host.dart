@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:studio/src/core/conn.dart';
-import 'package:studio/src/core/host.dart';
+import 'package:terminal_studio/src/core/conn.dart';
+import 'package:terminal_studio/src/core/host.dart';
 
 final connectorProvider = Provider.family(
   name: 'connectorProvider',

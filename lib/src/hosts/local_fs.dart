@@ -2,7 +2,7 @@ import 'dart:io' as io;
 import 'dart:typed_data';
 
 import 'package:path/path.dart' as p;
-import 'package:studio/src/core/fs.dart';
+import 'package:terminal_studio/src/core/fs.dart';
 
 class LocalFileSystem extends FileSystem {
   @override
