@@ -19,10 +19,6 @@ jobs:
 
       - uses: actions/setup-node@v2
 
-      # Build
-      - name: Build macOS
-        run: flutter build macos
-
       # Install packaging tools
       - name: Install flutter_distributor
         run: dart pub global activate flutter_distributor
@@ -30,7 +26,7 @@ jobs:
       - name: Install appdmg
         run: npm install -g appdmg
 
-      # Packaging
+      # Build and package
       - name: Packaging .dmg
         run: flutter_distributor package --platform macos --targets dmg --artifact-name TerminalStudio-${{github.ref_name}}-macos.dmg
 
@@ -40,4 +36,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          files: dist/TerminalStudio-${{github.ref_name}}-macos.dmg
+          files: dist/*.*.*/TerminalStudio-${{github.ref_name}}-macos.dmg
