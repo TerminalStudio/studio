@@ -55,7 +55,7 @@ jobs:
 
       # Build and package
       - name: Packaging .msix
-        run: flutter_distributor package --platform windows --targets msix --artifact-name TerminalStudio-${{github.ref_name}}-macos.{{ext}}
+        run: flutter_distributor package --platform windows --targets msix --artifact-name TerminalStudio-${{github.ref_name}}-windows.msix
 
       # Publish
       - name: Publish to GitHub Release
@@ -63,4 +63,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          files: dist/*/*.dmg
+          files: dist/*/*.msix
