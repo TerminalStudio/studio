@@ -36,4 +36,30 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          files: dist/*.*.*/TerminalStudio-${{github.ref_name}}-macos.dmg
+          files: dist/*/*.dmg
+
+  build_windows:
+    runs-on: windows-latest
+    steps:
+      # Setup
+      - uses: actions/checkout@v3
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          architecture: x64
+
+      # Install packaging tools
+      - name: Install flutter_distributor
+        run: dart pub global activate flutter_distributor
+
+      # Build and package
+      - name: Packaging .msix
+        run: flutter_distributor package --platform windows --targets msix --artifact-name TerminalStudio-${{github.ref_name}}-macos.{{ext}}
+
+      # Publish
+      - name: Publish to GitHub Release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: dist/*/*.dmg
