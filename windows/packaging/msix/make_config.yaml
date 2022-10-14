@@ -1,1 +1,3 @@
 display_name: TerminalStudio
+sign_msix: false
+install_certificate: false
