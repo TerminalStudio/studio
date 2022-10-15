@@ -2,9 +2,8 @@ name: Build
 
 on:
   workflow_dispatch:
-  push:
-    tags:
-      - "v*.*.*"
+  release:
+    types: [created]
 
 jobs:
   build_macos:
@@ -28,8 +27,8 @@ jobs:
         run: npm install -g appdmg
 
       # Build and package
-      - name: Packaging .dmg
-        run: flutter_distributor package --platform macos --targets dmg --artifact-name TerminalStudio-${{github.ref_name}}-macos.dmg
+      - name: Packaging .dmg .zip
+        run: flutter_distributor package --platform macos --targets dmg,zip --artifact-name "TerminalStudio-${{github.ref_name}}-macos.{{ext}}"
 
       # Publish
       - name: Publish to GitHub Release
