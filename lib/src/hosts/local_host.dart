@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -40,6 +41,16 @@ class LocalHost implements Host {
     );
     return LocalExecutionSession(pty);
   }
+
+  final _doneCompleter = Completer<void>();
+
+  @override
+  Future<void> disconnect() async {
+    _doneCompleter.complete();
+  }
+
+  @override
+  Future<void> get done => _doneCompleter.future;
 }
 
 class LocalExecutionResult implements ExecutionResult {

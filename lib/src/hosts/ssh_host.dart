@@ -44,6 +44,14 @@ class SSHHost implements Host {
     );
     return _SSHExecutionSession(session);
   }
+
+  @override
+  Future<void> disconnect() async {
+    client.close();
+  }
+
+  @override
+  Future<void> get done => client.done;
 }
 
 Future<_SSHExecutionResult> _collectResult(SSHSession session) async {

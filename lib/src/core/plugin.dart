@@ -63,6 +63,13 @@ abstract class Plugin {
   /// reconnected.
   void didDisconnected() {}
 
+  /// Called when the state of the host that this plugin is mounted to changes.
+  void onConnectionStatus(HostConnectorStatus status) {}
+
+  // void onConnectionMessage(String message) {}
+
+  // void onConnectionError(Object error, StackTrace stackTrace) {}
+
   /// Builds the UI for this plugin. This may be called multiple times during
   /// the lifetime of the plugin, for example when the plugin is moved to a new
   /// tab group.
@@ -137,4 +144,22 @@ class PluginManager with ChangeNotifier {
       plugin.didDisconnected();
     }
   }
+
+  void didConnectionStatusChanged(HostConnectorStatus status) {
+    for (final plugin in _plugins) {
+      plugin.onConnectionStatus(status);
+    }
+  }
+
+  // void didConnectionMessageChanged(String message) {
+  //   for (final plugin in _plugins) {
+  //     plugin.onConnectionMessage(message);
+  //   }
+  // }
+
+  // void didConnectionError(Object error, StackTrace stackTrace) {
+  //   for (final plugin in _plugins) {
+  //     plugin.onConnectionError(error, stackTrace);
+  //   }
+  // }
 }

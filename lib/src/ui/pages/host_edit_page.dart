@@ -1,3 +1,4 @@
+import 'package:flex_tabs/flex_tabs.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -36,10 +37,8 @@ class _HostEditDialogState extends ConsumerState<HostEditPage> {
                 onPressed: () async {
                   if (widget.record != null) {
                     await widget.record!.delete();
-                    if (mounted) {
-                      Navigator.of(context).pop();
-                    }
                   }
+                  close();
                 },
               ),
           ],
@@ -73,8 +72,18 @@ class _HostEditDialogState extends ConsumerState<HostEditPage> {
     } else {
       box.add(record);
     }
+    close();
+  }
+
+  void close() {
     if (mounted) {
-      Navigator.of(context).pop();
+      if (Navigator.of(context).canPop()) {
+        return Navigator.of(context).pop();
+      }
+
+      if (TabScope.of(context) != null) {
+        return TabScope.of(context)!.dispose();
+      }
     }
   }
 }

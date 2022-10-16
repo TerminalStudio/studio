@@ -16,14 +16,48 @@ enum HostConnectorStatus {
   aborted,
 }
 
-abstract class HostConnector<T extends Host> extends StateNotifier<T?> {
-  HostConnector() : super(null);
+abstract class HostConnector<T extends Host>
+    extends StateNotifier<HostConnectorStatus> {
+  HostConnector() : super(HostConnectorStatus.initialized);
 
-  final status = ValueNotifier(HostConnectorStatus.disconnected);
+  T? _host;
 
-  final statusText = ValueNotifier<String?>(null);
+  T? get host => _host;
 
-  Future<void> connect();
+  @protected
+  Future<T> createHost();
 
-  Future<void> disconnect();
+  Future<void> connect() async {
+    if (state == HostConnectorStatus.connected ||
+        state == HostConnectorStatus.connecting) {
+      return;
+    }
+
+    state = HostConnectorStatus.connecting;
+
+    try {
+      _host = await createHost();
+      _host!.done.then((_) => _onDone(), onError: _onError);
+
+      state = HostConnectorStatus.connected;
+    } catch (e) {
+      state = HostConnectorStatus.disconnected;
+    }
+  }
+
+  Future<void> disconnect() async {
+    await _host?.disconnect();
+    _host = null;
+    state = HostConnectorStatus.disconnected;
+  }
+
+  void _onDone() {
+    _host = null;
+    state = HostConnectorStatus.disconnected;
+  }
+
+  void _onError(Object error) {
+    _host = null;
+    state = HostConnectorStatus.aborted;
+  }
 }

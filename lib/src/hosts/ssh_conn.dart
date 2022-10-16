@@ -10,10 +10,7 @@ class SSHConnector extends HostConnector<SSHHost> {
   SSHConnector(this.record);
 
   @override
-  Future<void> connect() async {
-    status.value = HostConnectorStatus.connecting;
-    statusText.value = 'Connecting...';
-
+  Future<SSHHost> createHost() async {
     final socket = await AsyncValue.guard(
       () => SSHSocket.connect(
         record.host,
@@ -23,12 +20,8 @@ class SSHConnector extends HostConnector<SSHHost> {
 
     if (socket.hasError) {
       final error = socket.error!;
-      status.value = HostConnectorStatus.disconnected;
-      statusText.value = 'Failed to connect: $error';
-      return;
+      throw 'Failed to connect: $error';
     }
-
-    statusText.value = 'Authenticating...';
 
     final client = SSHClient(
       socket.value!,
@@ -40,35 +33,9 @@ class SSHConnector extends HostConnector<SSHHost> {
 
     if (authenticated.hasError) {
       final error = authenticated.error!;
-      status.value = HostConnectorStatus.disconnected;
-      statusText.value = 'Failed to authenticate: $error';
-      return;
+      throw 'Failed to authenticate: $error';
     }
 
-    client.done.then((_) => _onDone(), onError: _onError);
-
-    state = SSHHost(client);
-    status.value = HostConnectorStatus.connected;
-    statusText.value = 'Connected';
-  }
-
-  @override
-  Future<void> disconnect() async {
-    state?.client.close();
-    state = null;
-    status.value = HostConnectorStatus.disconnected;
-    statusText.value = 'Disconnected';
-  }
-
-  void _onDone() {
-    state = null;
-    status.value = HostConnectorStatus.disconnected;
-    statusText.value = 'Disconnected';
-  }
-
-  void _onError(Object error) {
-    state = null;
-    status.value = HostConnectorStatus.aborted;
-    statusText.value = 'Aborted: $error';
+    return SSHHost(client);
   }
 }

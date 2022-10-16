@@ -1,7 +1,9 @@
 import 'package:flex_tabs/flex_tabs.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_studio/src/core/plugin.dart';
+import 'package:terminal_studio/src/core/state/host.dart';
 
 class PluginTab extends TabItem {
   final Plugin plugin;
@@ -17,7 +19,10 @@ class PluginTab extends TabItem {
 
     manager.addListener(_onPluginManagerChanged);
 
-    content.value = PluginTabView(plugin);
+    content.value = PluginTabView(
+      key: ValueKey(plugin),
+      plugin,
+    );
   }
 
   @override
@@ -72,6 +77,14 @@ class PluginTabView extends ConsumerStatefulWidget {
 
 class _PluginTabViewState extends ConsumerState<PluginTabView> {
   Plugin get plugin => widget.plugin;
+
+  @override
+  void initState() {
+    SchedulerBinding.instance!.addPostFrameCallback((_) {
+      ref.read(connectorProvider(plugin.hostSpec)).connect();
+    });
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {

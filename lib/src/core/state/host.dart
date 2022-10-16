@@ -4,15 +4,19 @@ import 'package:terminal_studio/src/core/host.dart';
 
 final connectorProvider = Provider.family(
   name: 'connectorProvider',
-  (ref, HostSpec config) {
-    final connector = config.createConnector();
-    connector.connect();
-    return connector;
-  },
+  (ref, HostSpec config) => config.createConnector(),
 );
 
-final hostProvider =
-    StateNotifierProvider.family<HostConnector, Host?, HostSpec>(
+final connectorStatusProvider =
+    StateNotifierProvider.family<HostConnector, HostConnectorStatus, HostSpec>(
+  name: 'connectorStatusProvider',
+  (ref, HostSpec config) => ref.watch(connectorProvider(config)),
+);
+
+final hostProvider = Provider.family<Host?, HostSpec>(
   name: 'hostProvider',
-  (ref, spec) => ref.watch(connectorProvider(spec)),
+  (ref, spec) {
+    ref.watch(connectorStatusProvider(spec));
+    return ref.watch(connectorProvider(spec)).host;
+  },
 );

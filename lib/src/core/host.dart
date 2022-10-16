@@ -17,6 +17,10 @@ abstract class Host {
     int height = 25,
     Map<String, String>? environment,
   });
+
+  Future<void> disconnect();
+
+  Future<void> get done;
 }
 
 /// Result of command execution.

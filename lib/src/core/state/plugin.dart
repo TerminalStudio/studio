@@ -22,6 +22,13 @@ final pluginManagerProvider = Provider.family<PluginManager, HostSpec>(
       fireImmediately: true,
     );
 
+    ref.listen(
+      connectorStatusProvider(spec),
+      (last, current) {
+        manager.didConnectionStatusChanged(current);
+      },
+    );
+
     return manager;
   },
 );
